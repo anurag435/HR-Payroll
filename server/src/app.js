@@ -28,7 +28,7 @@ const departmentRouter = require("./routes/departments");
 
 
 // --- Routes ---
-app.use("/auth", authRouter);
+app.use("/", authRouter);
 app.use("/working-schedules", workingScheduleRouter);
 app.use("/departments", departmentRouter);
 

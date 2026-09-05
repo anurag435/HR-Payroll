@@ -2,8 +2,17 @@ const mongoose = require("mongoose");
 
 const departmentSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, unique: true, trim: true },
-    company: { type: String, default: "My Company", trim: true },
+    name: { 
+      type: String, 
+      required: true, 
+      unique: true, 
+      trim: true 
+    },
+    company: { 
+      type: String, 
+      default: "My Company", 
+      trim: true 
+    },
   },
   { timestamps: true }
 );
