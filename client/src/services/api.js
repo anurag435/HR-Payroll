@@ -311,3 +311,9 @@ export async function createSalaryStructure(payload) {
 export async function updateSalaryStructure(id, payload) {
   return request(`/salary-structures/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
+
+// ---- Dashboard ----------------------------------------------------------
+export async function getDashboardSummary(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return request(`/dashboard/summary${query ? `?${query}` : ""}`);
+}

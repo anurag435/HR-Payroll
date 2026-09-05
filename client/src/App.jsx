@@ -27,6 +27,7 @@ import SalaryRuleList from "./components/Payroll/SalaryRuleList";
 import SalaryRuleForm from "./components/Payroll/SalaryRuleForm";
 import SalaryStructureList from "./components/Payroll/SalaryStructureList";
 import SalaryStructureForm from "./components/Payroll/SalaryStructureForm";
+import Dashboard from "./components/Dashboard/Dashboard";
 import { ROLE_GROUPS, homeRouteForRole } from "./constants/roles";
 import { useAuth } from "./context/useAuth";
 
@@ -42,6 +43,15 @@ export default function App() {
 
       <Route element={<AppLayout />}>
         <Route path="/" element={<RoleHome />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
+              <Dashboard />
+            </RequireRole>
+          }
+        />
 
         <Route
           path="/employees"
@@ -261,3 +271,4 @@ export default function App() {
       </Route>
     </Routes>
   );
+}

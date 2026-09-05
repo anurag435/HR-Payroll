@@ -99,6 +99,11 @@ export default function TopNav() {
 
           <nav className="flex items-center gap-1">
             {canManageHR && (
+              <NavLink to="/dashboard" className={linkClass}>
+                Dashboard
+              </NavLink>
+            )}
+            {canManageHR && (
               <NavDropdown
                 label="Employees"
                 items={[
