@@ -178,9 +178,9 @@ export default function EmployeeForm() {
   }
 
   const smartButtons = [
-    { label: "Contracts", count: relatedCounts.contracts, to: "/contracts" },
-    { label: "Attendance", count: relatedCounts.attendance, to: "/attendance" },
-    { label: "Time Off", count: relatedCounts.timeOff, to: "/timeoff/requests" },
+    { label: "Contracts", count: 0, to: "/contracts" },
+    { label: "Attendance", count: 0, to: "/attendance" },
+    { label: "Time Off", count: 0, to: "/timeoff/requests" },
     { label: "Allocations", count: 0, to: "/timeoff/allocations" },
   ];
 

@@ -9,6 +9,14 @@ import ContractList from "./components/Contracts/ContractList";
 import ContractForm from "./components/Contracts/ContractForm";
 import ScheduleList from "./components/WorkingSchedule/ScheduleList";
 import ScheduleForm from "./components/WorkingSchedule/ScheduleForm";
+import AttendanceList from "./components/Attendance/AttendanceList";
+import AttendanceForm from "./components/Attendance/AttendanceForm";
+import RequestList from "./components/TimeOff/RequestList";
+import RequestForm from "./components/TimeOff/RequestForm";
+import AllocationList from "./components/TimeOff/AllocationList";
+import AllocationForm from "./components/TimeOff/AllocationForm";
+import TypeList from "./components/TimeOff/TypeList";
+import TypeForm from "./components/TimeOff/TypeForm";
 
 export default function App() {
   return (
@@ -24,10 +32,15 @@ export default function App() {
         <Route path="/departments" element={<ComingSoon title="Departments" />} />
         <Route path="/working-schedule" element={<ScheduleList />} />
         <Route path="/working-schedule/:id" element={<ScheduleForm />} />
-        <Route path="/attendance" element={<ComingSoon title="Attendance" />} />
-        <Route path="/timeoff/requests" element={<ComingSoon title="Time Off Requests" />} />
-        <Route path="/timeoff/allocations" element={<ComingSoon title="Time Off Allocations" />} />
-        <Route path="/timeoff/types" element={<ComingSoon title="Time Off Types" />} />
+        <Route path="/attendance" element={<AttendanceList />} />
+        <Route path="/attendance/:id" element={<AttendanceForm />} />
+        <Route path="/timeoff/dashboard" element={<ComingSoon title="Time Off Dashboard" />} />
+        <Route path="/timeoff/requests" element={<RequestList />} />
+        <Route path="/timeoff/requests/:id" element={<RequestForm />} />
+        <Route path="/timeoff/allocations" element={<AllocationList />} />
+        <Route path="/timeoff/allocations/:id" element={<AllocationForm />} />
+        <Route path="/timeoff/types" element={<TypeList />} />
+        <Route path="/timeoff/types/:id" element={<TypeForm />} />
         <Route path="/payroll" element={<ComingSoon title="Payroll" />} />
         <Route path="/admin/users" element={<UserManagement />} />
       </Route>

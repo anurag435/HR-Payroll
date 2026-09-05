@@ -2,6 +2,10 @@ import { mockUsers } from "../mockData/users";
 import { mockEmployees } from "../mockData/employees";
 import { mockContracts } from "../mockData/contracts";
 import { mockWorkingSchedules } from "../mockData/workingSchedules";
+import { mockAttendance, MOCK_TODAY } from "../mockData/attendance";
+import { mockTimeOffTypes } from "../mockData/timeOffTypes";
+import { mockAllocations } from "../mockData/timeOffAllocations";
+import { mockTimeOffRequests } from "../mockData/timeOffRequests";
 
 const USE_MOCK = false;
 const BASE_URL = "http://localhost:3000";

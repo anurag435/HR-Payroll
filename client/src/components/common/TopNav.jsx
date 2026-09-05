@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import AttendanceWidget from "./AttendanceWidget";
 
 function NavDropdown({ label, items, active }) {
   const [open, setOpen] = useState(false);
@@ -78,9 +79,10 @@ export default function TopNav() {
             <NavDropdown
               label="Time Off"
               items={[
-                { label: "Requests", to: "/timeoff/requests" },
+                { label: "Dashboard", to: "/timeoff/dashboard" },
+                { label: "Time offs", to: "/timeoff/requests" },
+                { label: "Time off Types", to: "/timeoff/types" },
                 { label: "Allocations", to: "/timeoff/allocations" },
-                { label: "Time Off Types", to: "/timeoff/types" },
               ]}
             />
             <NavLink to="/payroll" className={linkClass}>
@@ -89,7 +91,9 @@ export default function TopNav() {
           </nav>
         </div>
 
-        <div className="relative">
+        <div className="flex items-center gap-3">
+          <AttendanceWidget />
+          <div className="relative">
           <button
             onClick={() => setProfileOpen((o) => !o)}
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-surface-raised transition-colors"
@@ -121,7 +125,8 @@ export default function TopNav() {
                 Log out
               </button>
             </div>
-          )}
+                    )}
+          </div>
         </div>
       </div>
     </header>
