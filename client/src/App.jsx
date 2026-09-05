@@ -23,6 +23,10 @@ import PayrunWizard from "./components/Payroll/PayrunWizard";
 import PayrunDetail from "./components/Payroll/PayrunDetail";
 import PayslipList from "./components/Payroll/PayslipList";
 import PayslipDetail from "./components/Payroll/PayslipDetail";
+import SalaryRuleList from "./components/Payroll/SalaryRuleList";
+import SalaryRuleForm from "./components/Payroll/SalaryRuleForm";
+import SalaryStructureList from "./components/Payroll/SalaryStructureList";
+import SalaryStructureForm from "./components/Payroll/SalaryStructureForm";
 import { ROLE_GROUPS, homeRouteForRole } from "./constants/roles";
 import { useAuth } from "./context/useAuth";
 
@@ -193,6 +197,59 @@ export default function App() {
             trying to view a payslip that isn't theirs and isn't payroll staff. */}
         <Route path="/payroll/payslips/:id" element={<PayslipDetail />} />
 
+        {/* ---- Payroll: Salary Structure / Rule config -------------------
+            Lists are readable by all PAYROLL_STAFF (HRPayrollUser included,
+            per spec's read-only access); create/edit is PAYROLL_CONFIG only
+            (HRPayrollManager/Admin) — matches the backend route guards. */}
+        <Route
+          path="/payroll/salary-rules"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
+              <SalaryRuleList />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll/salary-rules/new"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_CONFIG}>
+              <SalaryRuleForm />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll/salary-rules/:id"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_CONFIG}>
+              <SalaryRuleForm />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll/salary-structures"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
+              <SalaryStructureList />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll/salary-structures/new"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_CONFIG}>
+              <SalaryStructureForm />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll/salary-structures/:id"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_CONFIG}>
+              <SalaryStructureForm />
+            </RequireRole>
+          }
+        />
+
         <Route
           path="/admin/users"
           element={
@@ -204,4 +261,3 @@ export default function App() {
       </Route>
     </Routes>
   );
-}

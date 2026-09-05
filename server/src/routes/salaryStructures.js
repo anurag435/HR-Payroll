@@ -9,11 +9,21 @@ const controller = require("../controllers/salaryStructureController");
 const router = express.Router();
 
 router.use(verifyJWT);
-router.use(requireRole(ROLE_GROUPS.PAYROLL_CONFIG));
 
-router.get("/", asyncHandler(controller.listSalaryStructures));
-router.get("/:id", asyncHandler(controller.getSalaryStructureById));
-router.post("/", validate(createSalaryStructureSchema), asyncHandler(controller.createSalaryStructure));
-router.patch("/:id", validate(updateSalaryStructureSchema), asyncHandler(controller.updateSalaryStructure));
+router.get("/", requireRole(ROLE_GROUPS.PAYROLL_STAFF), asyncHandler(controller.listSalaryStructures));
+router.get("/:id", requireRole(ROLE_GROUPS.PAYROLL_STAFF), asyncHandler(controller.getSalaryStructureById));
+
+router.post(
+  "/",
+  requireRole(ROLE_GROUPS.PAYROLL_CONFIG),
+  validate(createSalaryStructureSchema),
+  asyncHandler(controller.createSalaryStructure)
+);
+router.patch(
+  "/:id",
+  requireRole(ROLE_GROUPS.PAYROLL_CONFIG),
+  validate(updateSalaryStructureSchema),
+  asyncHandler(controller.updateSalaryStructure)
+);
 
 module.exports = router;

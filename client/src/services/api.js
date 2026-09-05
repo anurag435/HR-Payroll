@@ -283,3 +283,31 @@ export async function getPayslipById(id) {
 export function getPayslipPdfUrl(id) {
   return `${BASE_URL}/payslips/${id}/pdf`;
 }
+
+// ---- Payroll: Salary Rules (config) -----------------------------------------
+export async function getSalaryRules() {
+  return request("/salary-rules");
+}
+export async function getSalaryRuleById(id) {
+  return request(`/salary-rules/${id}`);
+}
+export async function createSalaryRule(payload) {
+  return request("/salary-rules", { method: "POST", body: JSON.stringify(payload) });
+}
+export async function updateSalaryRule(id, payload) {
+  return request(`/salary-rules/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+export async function deleteSalaryRule(id) {
+  return request(`/salary-rules/${id}`, { method: "DELETE" });
+}
+
+// ---- Payroll: Salary Structures (config — create/update) --------------------
+export async function getSalaryStructureById(id) {
+  return request(`/salary-structures/${id}`);
+}
+export async function createSalaryStructure(payload) {
+  return request("/salary-structures", { method: "POST", body: JSON.stringify(payload) });
+}
+export async function updateSalaryStructure(id, payload) {
+  return request(`/salary-structures/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+}

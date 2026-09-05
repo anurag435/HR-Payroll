@@ -126,6 +126,8 @@ export default function TopNav() {
                 items={[
                   { label: "Payruns", to: "/payroll" },
                   { label: "Payslips", to: "/payroll/payslips" },
+                  { label: "Salary Structures", to: "/payroll/salary-structures" },
+                  { label: "Salary Rules", to: "/payroll/salary-rules" },
                 ]}
               />
             )}
