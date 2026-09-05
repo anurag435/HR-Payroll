@@ -107,7 +107,7 @@ export default function UserManagement() {
               placeholder="Search users, employees or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="field-input flex-1 min-w-[200px]"
+              className="field-input flex-1 min-w-200px"
             />
             <select
               value={roleFilter}

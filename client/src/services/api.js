@@ -1,15 +1,6 @@
 import { mockUsers } from "../mockData/users";
 import { mockEmployees } from "../mockData/employees";
 
-// --- Swap point -------------------------------------------------------
-// While the backend is in progress, USE_MOCK stays true and every function
-// below resolves from local mock data (with a small artificial delay so
-// loading states are visible and get tested). Once the API is ready:
-//   1. set USE_MOCK to false
-//   2. set BASE_URL to your backend origin
-//   3. fill in the fetch() calls in the "real" branch of each function
-// No component code needs to change either way — they only ever import
-// from this file.
 const USE_MOCK = true;
 const BASE_URL = "http://localhost:8000/api";
 
@@ -21,10 +12,8 @@ export async function login({ email, password }) {
     await delay();
     const user = mockUsers.find((u) => u.workEmail === email);
     if (!user) throw new Error("No account found for this email.");
-    // Mock: any password is accepted for demo purposes.
     return { token: "mock-token", user };
   }
-
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -34,7 +23,7 @@ export async function login({ email, password }) {
   return res.json();
 }
 
-// ---- Users (Admin > User Management) -----------------------------------
+// ---- Users ---------------------------------------------------------------
 export async function getUsers() {
   if (USE_MOCK) {
     await delay();
@@ -77,7 +66,7 @@ export async function updateUser(id, payload) {
   return res.json();
 }
 
-// ---- Employees (for dropdowns / linking) --------------------------------
+// ---- Employees -------------------------------------------------------------
 export async function getEmployees() {
   if (USE_MOCK) {
     await delay();
@@ -85,5 +74,17 @@ export async function getEmployees() {
   }
   const res = await fetch(`${BASE_URL}/employees`);
   if (!res.ok) throw new Error("Failed to load employees.");
+  return res.json();
+}
+
+export async function getEmployeeById(id) {
+  if (USE_MOCK) {
+    await delay();
+    const emp = mockEmployees.find((e) => e.id === id);
+    if (!emp) throw new Error("Employee not found.");
+    return emp;
+  }
+  const res = await fetch(`${BASE_URL}/employees/${id}`);
+  if (!res.ok) throw new Error("Failed to load employee.");
   return res.json();
 }
