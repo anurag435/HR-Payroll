@@ -1,5 +1,7 @@
 import { mockUsers } from "../mockData/users";
 import { mockEmployees } from "../mockData/employees";
+import { mockContracts } from "../mockData/contracts";
+import { mockWorkingSchedules } from "../mockData/workingSchedules";
 
 const USE_MOCK = true;
 const BASE_URL = "http://localhost:8000/api";
@@ -86,5 +88,51 @@ export async function getEmployeeById(id) {
   }
   const res = await fetch(`${BASE_URL}/employees/${id}`);
   if (!res.ok) throw new Error("Failed to load employee.");
+  return res.json();
+}
+
+// ---- Contracts -------------------------------------------------------------
+export async function getContracts() {
+  if (USE_MOCK) {
+    await delay();
+    return [...mockContracts];
+  }
+  const res = await fetch(`${BASE_URL}/contracts`);
+  if (!res.ok) throw new Error("Failed to load contracts.");
+  return res.json();
+}
+
+export async function getContractById(id) {
+  if (USE_MOCK) {
+    await delay();
+    const contract = mockContracts.find((c) => c.id === id);
+    if (!contract) throw new Error("Contract not found.");
+    return contract;
+  }
+  const res = await fetch(`${BASE_URL}/contracts/${id}`);
+  if (!res.ok) throw new Error("Failed to load contract.");
+  return res.json();
+}
+
+// ---- Working Schedules -------------------------------------------------------------
+export async function getWorkingSchedules() {
+  if (USE_MOCK) {
+    await delay();
+    return [...mockWorkingSchedules];
+  }
+  const res = await fetch(`${BASE_URL}/working-schedules`);
+  if (!res.ok) throw new Error("Failed to load working schedules.");
+  return res.json();
+}
+
+export async function getWorkingScheduleById(id) {
+  if (USE_MOCK) {
+    await delay();
+    const schedule = mockWorkingSchedules.find((s) => s.id === id);
+    if (!schedule) throw new Error("Working schedule not found.");
+    return schedule;
+  }
+  const res = await fetch(`${BASE_URL}/working-schedules/${id}`);
+  if (!res.ok) throw new Error("Failed to load working schedule.");
   return res.json();
 }

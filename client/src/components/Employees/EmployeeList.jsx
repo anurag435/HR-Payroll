@@ -51,7 +51,7 @@ export default function EmployeeList() {
             placeholder="Search employees..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="field-input flex-1 min-w-200px"
+            className="field-input flex-1 min-w-[200px]"
           />
           <div className="flex rounded-md border border-surface-border overflow-hidden">
             <button

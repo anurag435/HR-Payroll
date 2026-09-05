@@ -5,20 +5,25 @@ import AppLayout from "./components/common/AppLayout";
 import ComingSoon from "./components/common/ComingSoon";
 import EmployeeList from "./components/Employees/EmployeeList";
 import EmployeeForm from "./components/Employees/EmployeeForm";
+import ContractList from "./components/Contracts/ContractList";
+import ContractForm from "./components/Contracts/ContractForm";
+import ScheduleList from "./components/WorkingSchedule/ScheduleList";
+import ScheduleForm from "./components/WorkingSchedule/ScheduleForm";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
 
-      {/* Everything below shares the same persistent TopNav via AppLayout */}
       <Route element={<AppLayout />}>
         <Route path="/" element={<Navigate to="/employees" replace />} />
         <Route path="/employees" element={<EmployeeList />} />
         <Route path="/employees/:id" element={<EmployeeForm />} />
-        <Route path="/contracts" element={<ComingSoon title="Contracts" />} />
+        <Route path="/contracts" element={<ContractList />} />
+        <Route path="/contracts/:id" element={<ContractForm />} />
         <Route path="/departments" element={<ComingSoon title="Departments" />} />
-        <Route path="/working-schedule" element={<ComingSoon title="Working Schedule" />} />
+        <Route path="/working-schedule" element={<ScheduleList />} />
+        <Route path="/working-schedule/:id" element={<ScheduleForm />} />
         <Route path="/attendance" element={<ComingSoon title="Attendance" />} />
         <Route path="/timeoff/requests" element={<ComingSoon title="Time Off Requests" />} />
         <Route path="/timeoff/allocations" element={<ComingSoon title="Time Off Allocations" />} />
