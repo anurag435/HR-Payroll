@@ -28,6 +28,9 @@ const departmentRouter = require("./routes/departments");
 const contractRouter = require("./routes/contracts");
 const employeeRouter = require("./routes/employees");
 const attendanceRouter = require("./routes/attendance");
+const timeOffTypeRouter = require("./routes/timeOffTypes");
+const timeOffAllocationRouter = require("./routes/timeOffAllocations");
+const timeOffRequestRouter = require("./routes/timeOffRequests");
 
 
 // --- Routes ---
@@ -37,6 +40,9 @@ app.use("/departments", departmentRouter);
 app.use("/employees", employeeRouter);
 app.use("/contracts", contractRouter);
 app.use("/attendance", attendanceRouter);
+app.use("/timeoff/types", timeOffTypeRouter);
+app.use("/timeoff/allocations", timeOffAllocationRouter);
+app.use("/timeoff/requests", timeOffRequestRouter);
 
 
 app.use(notFound);
