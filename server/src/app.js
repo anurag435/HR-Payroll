@@ -27,6 +27,7 @@ const workingScheduleRouter = require("./routes/workingSchedules");
 const departmentRouter = require("./routes/departments");
 const contractRouter = require("./routes/contracts");
 const employeeRouter = require("./routes/employees");
+const attendanceRouter = require("./routes/attendance");
 
 
 // --- Routes ---
@@ -35,6 +36,7 @@ app.use("/working-schedules", workingScheduleRouter);
 app.use("/departments", departmentRouter);
 app.use("/employees", employeeRouter);
 app.use("/contracts", contractRouter);
+app.use("/attendance", attendanceRouter);
 
 
 app.use(notFound);
