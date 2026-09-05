@@ -57,17 +57,16 @@ const salaryRuleSchema = new mongoose.Schema(
 );
 
 // Guard against inconsistent config at the data layer, not just the UI
-salaryRuleSchema.pre("validate", function (next) {
+salaryRuleSchema.pre("validate", function () {
   if (this.computeType === "Percentage" && (!this.percentageOf || !this.percentageValue)) {
-    return next(new Error("Percentage rules require percentageOf and percentageValue"));
+    throw new Error("Percentage rules require percentageOf and percentageValue");
   }
   if (this.computeType === "Formula" && !this.formula) {
-    return next(new Error("Formula rules require a formula string"));
+    throw new Error("Formula rules require a formula string");
   }
   if (this.computeType === "Fixed" && this.fixedAmount == null) {
-    return next(new Error("Fixed rules require a fixedAmount"));
+    throw new Error("Fixed rules require a fixedAmount");
   }
-  next();
 });
 
 module.exports = mongoose.model("SalaryRule", salaryRuleSchema);

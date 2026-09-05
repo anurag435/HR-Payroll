@@ -1,17 +1,45 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { roleLabel } from "../../constants/roles";
+import { roleLabel, ROLE_GROUPS } from "../../constants/roles";
+
+// Shared behavior for any dropdown that should close on an outside click,
+// an Escape press, or a route change (selecting an item).
+function useDismissableDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    function handlePointerDown(e) {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return [open, setOpen, ref];
+}
 
 function NavDropdown({ label, items, active }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen, ref] = useDismissableDropdown();
+
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <div className="relative" ref={ref}>
       <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-1 px-3 py-2 text-sm rounded-md transition-colors ${
           active ? "text-accent font-medium" : "text-text-secondary hover:text-text-primary"
         }`}
@@ -28,6 +56,7 @@ function NavDropdown({ label, items, active }) {
               <Link
                 key={item.to}
                 to={item.to}
+                onClick={() => setOpen(false)}
                 className="block px-4 py-2 text-sm text-text-primary hover:bg-surface-raised"
               >
                 {item.label}
@@ -43,7 +72,7 @@ function NavDropdown({ label, items, active }) {
 export default function TopNav() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileOpen, setProfileOpen, profileRef] = useDismissableDropdown();
 
   async function handleLogout() {
     await logout();
@@ -58,25 +87,29 @@ export default function TopNav() {
   const displayName = user?.name ?? "Guest";
   const initial = displayName[0]?.toUpperCase() ?? "?";
   const isAdmin = user?.role === "Admin";
+  const canManageHR = ROLE_GROUPS.HR_STAFF.includes(user?.role);
+  const canSeePayroll = ROLE_GROUPS.PAYROLL_STAFF.includes(user?.role);
 
   return (
     <header className="sticky top-0 z-10 bg-surface-panel border-b border-surface-border">
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to="/employees" className="w-7 h-7 rounded-md bg-accent text-white flex items-center justify-center text-xs font-bold shrink-0">
+          <Link to={canManageHR ? "/employees" : "/attendance"} className="w-7 h-7 rounded-md bg-accent text-white flex items-center justify-center text-xs font-bold shrink-0">
             HR
           </Link>
 
           <nav className="flex items-center gap-1">
-            <NavDropdown
-              label="Employees"
-              items={[
-                { label: "Employees", to: "/employees" },
-                { label: "Contracts", to: "/contracts" },
-                { label: "Departments", to: "/departments" },
-                { label: "Working Schedule", to: "/working-schedule" },
-              ]}
-            />
+            {canManageHR && (
+              <NavDropdown
+                label="Employees"
+                items={[
+                  { label: "Employees", to: "/employees" },
+                  { label: "Contracts", to: "/contracts" },
+                  { label: "Departments", to: "/departments" },
+                  { label: "Working Schedule", to: "/working-schedule" },
+                ]}
+              />
+            )}
             <NavLink to="/attendance" className={linkClass}>
               Attendance
             </NavLink>
@@ -88,14 +121,17 @@ export default function TopNav() {
                 { label: "Time Off Types", to: "/timeoff/types" },
               ]}
             />
-            <NavLink to="/payroll" className={linkClass}>
-              Payroll
-            </NavLink>
+            {canSeePayroll && (
+              <NavLink to="/payroll" className={linkClass}>
+                Payroll
+              </NavLink>
+            )}
           </nav>
         </div>
 
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
+            type="button"
             onClick={() => setProfileOpen((o) => !o)}
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-surface-raised transition-colors"
           >
@@ -121,7 +157,10 @@ export default function TopNav() {
                 </Link>
               )}
               <button
-                onClick={handleLogout}
+                onClick={() => {
+                  setProfileOpen(false);
+                  handleLogout();
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-surface-raised"
               >
                 Log out

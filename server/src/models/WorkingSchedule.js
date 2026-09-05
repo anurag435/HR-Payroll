@@ -60,14 +60,13 @@ function timeStringToMinutes(t) {
   return h * 60 + m;
 }
 
-workingScheduleSchema.pre("save", function (next) {
+workingScheduleSchema.pre("save", function () {
   const totalMinutes = this.days.reduce((sum, d) => {
     const minutes =
       timeStringToMinutes(d.endTime) - timeStringToMinutes(d.startTime) - (d.breakMinutes || 0);
     return sum + Math.max(minutes, 0);
   }, 0);
   this.totalWeeklyHours = Math.round((totalMinutes / 60) * 100) / 100;
-  next();
 });
 
 module.exports = mongoose.model("WorkingSchedule", workingScheduleSchema);

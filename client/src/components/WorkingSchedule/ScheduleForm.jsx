@@ -135,7 +135,13 @@ export default function ScheduleForm() {
       <form onSubmit={handleSubmit}>
         <div className="panel p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-lg font-semibold">{isNew ? "New Schedule" : name}</h1>
+            <div>
+              <h1 className="text-lg font-semibold">{isNew ? "New Schedule" : name}</h1>
+              <p className="text-xs text-text-muted mt-1">
+                {days.length} day{days.length === 1 ? "" : "s"} / week · {totalHoursPreview.toFixed(1)}h / week
+                (computed from the rows below)
+              </p>
+            </div>
             <button
               type="submit"
               disabled={submitting}
@@ -153,15 +159,6 @@ export default function ScheduleForm() {
             <div>
               <label className="block text-xs text-text-secondary mb-1.5">Company</label>
               <input value={company} onChange={(e) => setCompany(e.target.value)} className="field-input" />
-            </div>
-            <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Days per Week</label>
-              
-              <input value={days.length} readOnly className="field-input opacity-60" />
-            </div>
-            <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Hours per Week (preview)</label>
-              <input value={`${totalHoursPreview.toFixed(1)}h`} readOnly className="field-input opacity-60" />
             </div>
             {!isNew && (
               <div>

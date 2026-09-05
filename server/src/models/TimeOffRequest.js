@@ -43,11 +43,9 @@ const timeOffRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-timeOffRequestSchema.pre("validate", function (next) {
+timeOffRequestSchema.pre("validate", function () {
   if (this.endDate < this.startDate) {
-    next(new Error("endDate cannot be before startDate"));
-  } else {
-    next();
+    throw new Error("endDate cannot be before startDate");
   }
 });
 

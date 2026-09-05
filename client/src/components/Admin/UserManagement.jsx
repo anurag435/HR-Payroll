@@ -314,6 +314,11 @@ export default function UserManagement() {
                     <option key={e._id} value={e._id}>{e.name}</option>
                   ))}
                 </select>
+                <p className="text-xs text-text-muted mt-1">
+                  This grants a login to an <em>existing</em> Employee record — it does not create
+                  one. To add a brand-new person, use Employees → New instead (that creates both
+                  the Employee record and their login together).
+                </p>
               </div>
 
               <div>

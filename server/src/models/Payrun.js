@@ -40,11 +40,10 @@ const payrunSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-payrunSchema.pre("validate", function (next) {
+payrunSchema.pre("validate", function () {
   if (!this.employees || this.employees.length === 0) {
-    return next(new Error("A Payrun must include at least one employee"));
+    throw new Error("A Payrun must include at least one employee");
   }
-  next();
 });
 
 module.exports = mongoose.model("Payrun", payrunSchema);

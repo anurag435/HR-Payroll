@@ -51,13 +51,12 @@ const contractSchema = new mongoose.Schema(
 );
 
 // Auto-generating the unique contract No.
-contractSchema.pre("save", async function (next) {
+contractSchema.pre("save", async function () {
   if (this.isNew && !this.contractNumber) {
     const year = new Date(this.startDate).getFullYear();
     const seq = await getNextSequence(`contract-${year}`);
     this.contractNumber = `CON/${year}/${String(seq).padStart(4, "0")}`;
   }
-  next();
 });
 
 contractSchema.statics.findActiveForPeriod = function (employeeId, periodDate) {

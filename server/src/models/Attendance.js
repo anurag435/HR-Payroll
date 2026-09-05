@@ -37,12 +37,11 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-attendanceSchema.pre("save", function (next) {
+attendanceSchema.pre("save", function () {
   if (this.checkIn && this.checkOut) {
     const diffMs = new Date(this.checkOut) - new Date(this.checkIn);
     this.workedHours = Math.max(Math.round((diffMs / 1000 / 60 / 60) * 100) / 100, 0);
   }
-  next();
 });
 
 // One employee shouldn't have two attendance records for the same day

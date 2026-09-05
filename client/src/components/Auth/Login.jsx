@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import { homeRouteForRole } from "../../constants/roles";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
 
   if (!loading && user) {
-    return <Navigate to="/employees" replace />;
+    return <Navigate to={homeRouteForRole(user.role)} replace />;
   }
 
   async function handleSubmit(e) {
@@ -29,10 +30,8 @@ export default function Login() {
       // /employees, so it should never override the role-based redirect.
       if (redirectTo && redirectTo !== "/") {
         navigate(redirectTo, { replace: true });
-      } else if (loggedInUser.role === "Admin") {
-        navigate("/admin/users", { replace: true });
       } else {
-        navigate("/employees", { replace: true });
+        navigate(homeRouteForRole(loggedInUser.role), { replace: true });
       }
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
