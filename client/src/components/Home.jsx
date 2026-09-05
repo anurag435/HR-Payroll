@@ -1,8 +1,6 @@
-import React from 'react'
-
 const Home = () => {
   return (
-    <div>Home</div>
+    <div className='font-bold text-8xl'>Home</div>
   )
 }
 
