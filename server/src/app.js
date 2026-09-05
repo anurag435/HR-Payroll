@@ -25,7 +25,7 @@ app.get("/api/health", (req, res) => {
 const authRouter = require("./routes/authRoutes");
 
 // --- Routes ---
-app.use("/", authRouter);
+app.use("/auth", authRouter);
 
 
 app.use(notFound);
