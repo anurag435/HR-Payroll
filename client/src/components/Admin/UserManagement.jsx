@@ -3,6 +3,7 @@ import {
   getUsers,
   getEmployees,
   createUser,
+  createEmployee,
   updateUserRole,
   updateUserStatus,
 } from "../../services/api";
@@ -16,6 +17,7 @@ const EMPTY_FORM = {
   password: "",
   role: "Employee",
   employee: "",
+  createNewEmployee: false,
 };
 
 export default function UserManagement() {
@@ -87,13 +89,24 @@ export default function UserManagement() {
     if (!form.name || !form.email || !form.password || !form.role) return;
     setSaving(true);
     try {
+      let employeeId = form.employee || undefined;
+
+      // "Register a new employee" from this screen: create the Employee
+      // record first, then link the new login to it — same two-step
+      // relationship Employees → New uses, just started from this side.
+      if (form.createNewEmployee) {
+        const employee = await createEmployee({ name: form.name, email: form.email });
+        employeeId = employee._id;
+        setEmployees((prev) => [...prev, employee]);
+      }
+
       const payload = {
         name: form.name,
         email: form.email,
         password: form.password,
         role: form.role,
       };
-      if (form.employee) payload.employee = form.employee;
+      if (employeeId) payload.employee = employeeId;
 
       const created = await createUser(payload);
       setUsers((prev) => [created, ...prev]);
@@ -301,24 +314,44 @@ export default function UserManagement() {
               </div>
 
               <div>
-                <label className="block text-xs text-text-secondary mb-1.5">
-                  Linked Employee (optional)
+                <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer mb-2">
+                  <input
+                    type="checkbox"
+                    checked={form.createNewEmployee}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, createNewEmployee: e.target.checked, employee: "" }))
+                    }
+                    className="accent-accent"
+                  />
+                  This is a brand-new person — create their Employee record too
                 </label>
-                <select
-                  value={form.employee}
-                  onChange={(e) => setForm((f) => ({ ...f, employee: e.target.value }))}
-                  className="field-input"
-                >
-                  <option value="">No linked employee</option>
-                  {employeesWithoutAccount.map((e) => (
-                    <option key={e._id} value={e._id}>{e.name}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-text-muted mt-1">
-                  This grants a login to an <em>existing</em> Employee record — it does not create
-                  one. To add a brand-new person, use Employees → New instead (that creates both
-                  the Employee record and their login together).
-                </p>
+
+                {form.createNewEmployee ? (
+                  <p className="text-xs text-text-muted">
+                    An Employee record will be created for <strong>{form.name || "this person"}</strong> using
+                    the name/email above, then this login will be linked to it.
+                  </p>
+                ) : (
+                  <>
+                    <label className="block text-xs text-text-secondary mb-1.5">
+                      Linked Employee (optional)
+                    </label>
+                    <select
+                      value={form.employee}
+                      onChange={(e) => setForm((f) => ({ ...f, employee: e.target.value }))}
+                      className="field-input"
+                    >
+                      <option value="">No linked employee</option>
+                      {employeesWithoutAccount.map((e) => (
+                        <option key={e._id} value={e._id}>{e.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-text-muted mt-1">
+                      This grants a login to an <em>existing</em> Employee record — check the box above
+                      instead if they don't have one yet.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div>

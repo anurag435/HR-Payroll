@@ -1,77 +1,82 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { getAttendance } from "../../services/api";
-import { MOCK_TODAY } from "../../mockData/attendance";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import { ROLE_GROUPS } from "../../constants/roles";
+import { listAttendance, listMyAttendance } from "../../services/api";
 import StatusBadge from "../common/StatusBadge";
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+function formatTime(d) {
+  return d ? new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+}
 
 export default function AttendanceList() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const employeeFilter = searchParams.get("employee") ?? "";
+  const { user } = useAuth();
+  const isHrStaff = ROLE_GROUPS.HR_STAFF.includes(user?.role);
 
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [todayOnly, setTodayOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
     setLoading(true);
-    getAttendance({ employeeName: employeeFilter || undefined }).then((data) => {
-      setRecords(data);
-      setLoading(false);
-    });
-  }, [employeeFilter]);
+    const request = isHrStaff ? listAttendance() : listMyAttendance();
+    request
+      .then((data) => setRecords(isHrStaff ? data.records : data))
+      .catch((err) => setError(err.message || "Failed to load attendance."))
+      .finally(() => setLoading(false));
+  }, [isHrStaff]);
 
   const filtered = useMemo(() => {
-    let rows = records.filter((r) => r.employeeName.toLowerCase().includes(search.toLowerCase()));
-    if (todayOnly) rows = rows.filter((r) => r.date === MOCK_TODAY);
-    return rows;
-  }, [records, search, todayOnly]);
-
-  function clearEmployeeFilter() {
-    searchParams.delete("employee");
-    setSearchParams(searchParams);
-  }
+    return records.filter((r) => {
+      const name = r.employee?.name || "";
+      const matchesSearch = !search || name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = !statusFilter || r.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [records, search, statusFilter]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="panel p-6">
         <h1 className="text-lg font-semibold mb-1">Attendance</h1>
-        <p className="text-sm text-text-secondary mb-5">List view of employee attendance records</p>
+        <p className="text-sm text-text-secondary mb-5">
+          {isHrStaff ? "Attendance records across all employees" : "Your attendance history"}
+        </p>
 
         <div className="flex flex-wrap items-center gap-3 mb-5">
-          <button
-            onClick={() => navigate("/attendance/new")}
-            className="bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md px-4 py-2 transition-colors"
-          >
-            + New
-          </button>
-          <input
-            type="text"
-            placeholder="Search attendance..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="field-input flex-1 min-w-[200px]"
-          />
-          <button
-            onClick={() => setTodayOnly((v) => !v)}
-            className={`px-3 py-2 text-sm rounded-md border transition-colors ${
-              todayOnly ? "bg-accent text-white border-accent" : "bg-surface-panel text-text-secondary border-surface-border"
-            }`}
-          >
-            Today
-          </button>
-          {employeeFilter && (
+          {isHrStaff && (
             <button
-              onClick={clearEmployeeFilter}
-              className="px-3 py-2 text-sm rounded-md border border-accent text-accent bg-accent/10 flex items-center gap-2"
+              onClick={() => navigate("/attendance/new")}
+              className="bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md px-4 py-2 transition-colors"
             >
-              Employee: {employeeFilter.split(" ")[0]}
-              <span className="text-xs">×</span>
+              + Manual Entry
             </button>
           )}
+          {isHrStaff && (
+            <input
+              type="text"
+              placeholder="Search by employee..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="field-input flex-1 min-w-50"
+            />
+          )}
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="field-input w-auto">
+            <option value="">All statuses</option>
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Late">Late</option>
+            <option value="Half Day">Half Day</option>
+          </select>
         </div>
 
+        {error && <p className="text-sm text-red-500 py-2">{error}</p>}
         {loading && <p className="text-sm text-text-muted py-6 text-center">Loading attendance…</p>}
 
         {!loading && (
@@ -79,7 +84,8 @@ export default function AttendanceList() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-text-secondary border-b border-surface-border">
-                  <th className="py-2 pr-4 font-medium">Employee</th>
+                  {isHrStaff && <th className="py-2 pr-4 font-medium">Employee</th>}
+                  <th className="py-2 pr-4 font-medium">Date</th>
                   <th className="py-2 pr-4 font-medium">Check In</th>
                   <th className="py-2 pr-4 font-medium">Check Out</th>
                   <th className="py-2 pr-4 font-medium">Worked Hours</th>
@@ -89,38 +95,31 @@ export default function AttendanceList() {
               <tbody>
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-6 text-center text-text-muted">
-                      No attendance records match your filters.
+                    <td colSpan={6} className="py-6 text-center text-text-muted">
+                      No attendance records found.
                     </td>
                   </tr>
                 )}
                 {filtered.map((r) => (
                   <tr
-                    key={r.id}
-                    onClick={() => navigate(`/attendance/${r.id}`)}
-                    className="cursor-pointer border-b border-surface-border/60 hover:bg-surface-raised transition-colors"
+                    key={r._id}
+                    onClick={() => isHrStaff && navigate(`/attendance/${r._id}`)}
+                    className={`border-b border-surface-border/60 ${
+                      isHrStaff ? "cursor-pointer hover:bg-surface-raised" : ""
+                    } transition-colors`}
                   >
-                    <td className="py-3 pr-4 font-medium">{r.employeeName}</td>
-                    <td className="py-3 pr-4 text-text-secondary">
-                      {r.checkIn ? r.checkIn.split(" ").slice(-1)[0] : "—"}
-                    </td>
-                    <td className="py-3 pr-4 text-text-secondary">
-                      {r.checkOut ? r.checkOut.split(" ").slice(-1)[0] : "—"}
-                    </td>
-                    <td className="py-3 pr-4 text-text-secondary">{r.workedHours.toFixed(2)}</td>
-                    <td className="py-3 pr-4">
-                      <StatusBadge status={r.status === "present" ? "active" : "inactive"} />
-                    </td>
+                    {isHrStaff && <td className="py-3 pr-4 font-medium">{r.employee?.name || "—"}</td>}
+                    <td className="py-3 pr-4 text-text-secondary">{formatDate(r.date)}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{formatTime(r.checkIn)}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{formatTime(r.checkOut)}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{r.workedHours ?? 0}h</td>
+                    <td className="py-3 pr-4"><StatusBadge status={r.status} /></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-
-        <p className="text-xs text-text-muted mt-5">
-          List view should help users review raw check-in / check-out data and identify missing punches quickly.
-        </p>
       </div>
     </div>
   );

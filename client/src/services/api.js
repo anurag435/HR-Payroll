@@ -172,3 +172,74 @@ export async function updateWorkingSchedule(id, payload) {
 export async function archiveWorkingSchedule(id) {
   return request(`/working-schedules/${id}/archive`, { method: "PATCH" });
 }
+
+// ---- Attendance --------------------------------------------------------------
+export async function getMyTodayAttendance() {
+  return request("/attendance/me/today");
+}
+export async function listMyAttendance() {
+  return request("/attendance/me");
+}
+export async function checkIn() {
+  return request("/attendance/check-in", { method: "POST" });
+}
+export async function checkOut() {
+  return request("/attendance/check-out", { method: "POST" });
+}
+export async function listAttendance(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return request(`/attendance${query ? `?${query}` : ""}`);
+}
+export async function getAttendanceById(id) {
+  return request(`/attendance/${id}`);
+}
+export async function createManualAttendance(payload) {
+  return request("/attendance/manual", { method: "POST", body: JSON.stringify(payload) });
+}
+export async function updateAttendance(id, payload) {
+  return request(`/attendance/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+// ---- Time Off: Types --------------------------------------------------------
+export async function getTimeOffTypes() {
+  return request("/timeoff/types");
+}
+export async function getTimeOffTypeById(id) {
+  return request(`/timeoff/types/${id}`);
+}
+export async function createTimeOffType(payload) {
+  return request("/timeoff/types", { method: "POST", body: JSON.stringify(payload) });
+}
+export async function updateTimeOffType(id, payload) {
+  return request(`/timeoff/types/${id}`, { method: "PATCH", body: JSON.stringify(payload) });
+}
+
+// ---- Time Off: Allocations ---------------------------------------------------
+export async function getTimeOffAllocations(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return request(`/timeoff/allocations${query ? `?${query}` : ""}`);
+}
+export async function getTimeOffAllocationById(id) {
+  return request(`/timeoff/allocations/${id}`);
+}
+export async function createTimeOffAllocation(payload) {
+  return request("/timeoff/allocations", { method: "POST", body: JSON.stringify(payload) });
+}
+
+// ---- Time Off: Requests ------------------------------------------------------
+export async function getTimeOffRequests(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return request(`/timeoff/requests${query ? `?${query}` : ""}`);
+}
+export async function getTimeOffRequestById(id) {
+  return request(`/timeoff/requests/${id}`);
+}
+export async function createTimeOffRequest(payload) {
+  return request("/timeoff/requests", { method: "POST", body: JSON.stringify(payload) });
+}
+export async function approveTimeOffRequest(id) {
+  return request(`/timeoff/requests/${id}/approve`, { method: "PATCH" });
+}
+export async function refuseTimeOffRequest(id) {
+  return request(`/timeoff/requests/${id}/refuse`, { method: "PATCH" });
+}

@@ -17,6 +17,7 @@
   --color-status-active: #16a34a;
   --color-status-pending: #ca8a04;
   --color-status-inactive: #6b7280;
+  --color-status-danger: #dc2626;
 
   --radius-card: 10px;
 }
@@ -29,7 +30,7 @@
 
 @layer components {
   .panel {
-    @apply bg-surface-panel border border-surface-border rounded-[10px] shadow-sm;
+    @apply bg-surface-panel border border-surface-border rounded-card shadow-sm;
   }
 
   .field-input {
@@ -57,5 +58,10 @@
   .badge-inactive {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
            text-status-inactive border-status-inactive/30 bg-status-inactive/10;
+  }
+
+  .badge-danger {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
+           text-status-danger border-status-danger/30 bg-status-danger/10;
   }
 }

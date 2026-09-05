@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { roleLabel, ROLE_GROUPS } from "../../constants/roles";
+import AttendanceWidget from "./AttendanceWidget";
 
-// Shared behavior for any dropdown that should close on an outside click,
-// an Escape press, or a route change (selecting an item).
 function useDismissableDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -129,7 +128,9 @@ export default function TopNav() {
           </nav>
         </div>
 
-        <div className="relative" ref={profileRef}>
+        <div className="flex items-center gap-3">
+          <AttendanceWidget />
+          <div className="relative" ref={profileRef}>
           <button
             type="button"
             onClick={() => setProfileOpen((o) => !o)}
@@ -167,6 +168,7 @@ export default function TopNav() {
               </button>
             </div>
           )}
+          </div>
         </div>
       </div>
     </header>

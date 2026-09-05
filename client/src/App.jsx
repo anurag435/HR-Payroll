@@ -11,6 +11,14 @@ import ContractForm from "./components/Contracts/ContractForm";
 import ScheduleList from "./components/WorkingSchedule/ScheduleList";
 import ScheduleForm from "./components/WorkingSchedule/ScheduleForm";
 import Departments from "./components/Departments/Departments";
+import AttendanceList from "./components/Attendance/AttendanceList";
+import AttendanceForm from "./components/Attendance/AttendanceForm";
+import RequestList from "./components/TimeOff/RequestList";
+import RequestForm from "./components/TimeOff/RequestForm";
+import AllocationList from "./components/TimeOff/AllocationList";
+import AllocationForm from "./components/TimeOff/AllocationForm";
+import TypeList from "./components/TimeOff/TypeList";
+import TypeForm from "./components/TimeOff/TypeForm";
 import { ROLE_GROUPS, homeRouteForRole } from "./constants/roles";
 import { useAuth } from "./context/useAuth";
 
@@ -87,10 +95,61 @@ export default function App() {
         {/* Every role can check their own attendance / submit time off,
             so these stay open — the backend itself scopes the data to
             "own records only" for anyone outside HR_STAFF. */}
-        <Route path="/attendance" element={<ComingSoon title="Attendance" />} />
-        <Route path="/timeoff/requests" element={<ComingSoon title="Time Off Requests" />} />
-        <Route path="/timeoff/allocations" element={<ComingSoon title="Time Off Allocations" />} />
-        <Route path="/timeoff/types" element={<ComingSoon title="Time Off Types" />} />
+        <Route path="/attendance" element={<AttendanceList />} />
+        <Route
+          path="/attendance/new"
+          element={
+            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
+              <AttendanceForm />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/attendance/:id"
+          element={
+            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
+              <AttendanceForm />
+            </RequireRole>
+          }
+        />
+
+        <Route path="/timeoff/requests" element={<RequestList />} />
+        <Route path="/timeoff/requests/new" element={<RequestForm />} />
+
+        <Route path="/timeoff/allocations" element={<AllocationList />} />
+        <Route
+          path="/timeoff/allocations/new"
+          element={
+            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
+              <AllocationForm />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/timeoff/types"
+          element={
+            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
+              <TypeList />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/timeoff/types/new"
+          element={
+            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
+              <TypeForm />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/timeoff/types/:id"
+          element={
+            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
+              <TypeForm />
+            </RequireRole>
+          }
+        />
 
         <Route
           path="/payroll"
