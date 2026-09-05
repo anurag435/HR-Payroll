@@ -28,4 +28,11 @@ router.patch(
   asyncHandler(authController.updateUserRole)
 );
 
+router.get(
+  "/users",
+  verifyJWT,
+  requireRole([ROLES.ADMIN]),
+  asyncHandler(authController.listUsers)
+);
+
 module.exports = router;

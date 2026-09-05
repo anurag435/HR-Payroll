@@ -31,32 +31,15 @@ const login = async (req, res) => {
   ).send(res);
 };
 
-/**
- * POST /api/auth/logout
- * Clears the auth cookie. Protected — just needs a valid session to call.
- */
 const logout = async (req, res) => {
   res.clearCookie("accessToken");
   return new ApiResponse(200, null, "Logged out successfully").send(res);
 };
 
-/**
- * GET /api/auth/me
- * Protected. Returns the currently authenticated user — useful for the
- * frontend to restore session state on page refresh.
- */
 const getMe = async (req, res) => {
   return new ApiResponse(200, req.user, "Current user fetched").send(res);
 };
 
-/**
- * POST /api/auth/users
- * Admin-only. Creates a new login account and links it to an Employee.
- *
- * Security note: this is exactly the endpoint the spec calls out —
- * "Users won't be able to assign or elevate their own roles." That
- * constraint is enforced below, not just hidden in the UI.
- */
 const createUser = async (req, res) => {
   const { name, email, password, role, employee } = req.body;
 
@@ -70,13 +53,6 @@ const createUser = async (req, res) => {
   return new ApiResponse(201, user, "User created successfully").send(res);
 };
 
-/**
- * PATCH /api/auth/users/:id/role
- * Admin-only route (enforced by requireRole in the route definition).
- * EXTRA explicit check here: even an Admin cannot change their own role
- * through this endpoint — self-elevation is blocked at the data layer,
- * not just by "well, only admins can call this."
- */
 const updateUserRole = async (req, res) => {
   const { id } = req.params;
   const { role } = req.body;
@@ -105,4 +81,16 @@ const updateUserRole = async (req, res) => {
   return new ApiResponse(200, user, "User role updated").send(res);
 };
 
-module.exports = { login, logout, getMe, createUser, updateUserRole };
+const listUsers = async (req, res) => {
+  const { role } = req.query;
+  const filter = {};
+  if (role) filter.role = role;
+
+  const users = await User.find(filter)
+    .populate("employee", "name email")
+    .sort({ createdAt: -1 });
+
+  return new ApiResponse(200, users, "Users fetched").send(res);
+};
+
+module.exports = { login, logout, getMe, createUser, updateUserRole, listUsers };

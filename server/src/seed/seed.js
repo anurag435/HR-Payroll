@@ -18,13 +18,15 @@ async function seedAdmin() {
     console.log(`  email: ${existing.email}`);
     console.log(`  role:  ${existing.role}`);
   } else {
-    const admin = await User.create({
+    const admin = await User({
       name: ADMIN_NAME,
       email: ADMIN_EMAIL,
       password: ADMIN_PASSWORD,
       role: ROLES.ADMIN,
     });
-
+    
+    await admin.save();
+    
     console.log("Admin account created successfully:");
     console.log(`  email:    ${admin.email}`);
     console.log(`  password: ${ADMIN_PASSWORD}`);

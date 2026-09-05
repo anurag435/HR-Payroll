@@ -15,6 +15,12 @@ const employeeSchema = new mongoose.Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
     },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      minlength: [8, "Password must be at least 8 characters"],
+      select: false,
+    },
     phone: { 
       type: String, 
       trim: true 

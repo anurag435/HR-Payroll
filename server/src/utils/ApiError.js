@@ -4,7 +4,7 @@ class ApiError extends Error {
     this.name = "ApiError";
     this.statusCode = statusCode;
     this.success = false;
-    this.errors = errors; // e.g. field-level validation errors
+    this.errors = errors;
     Error.captureStackTrace(this, this.constructor);
   }
 }

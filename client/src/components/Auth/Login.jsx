@@ -1,30 +1,36 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../services/api";
-import { useAuth } from "../../context/useAuth";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setSubmitting(true);
-    try {
-      const { user } = await login({ email, password });
-      setUser(user);
-      navigate(user.role === "admin" ? "/admin/users" : "/employees");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
+  e.preventDefault();
+  setError("");
+  setSubmitting(true);
+
+  try {
+    const data = await login(email, password);
+
+    const user = data.user || data;
+    const role = user.role ? user.role.toLowerCase() : "";
+    navigate(role === "admin" ? "/admin/users" : "/employees");
+  } catch (err) {
+    setError(
+      err.response?.data?.message ||
+      err.message ||
+      "Login failed. Please check your credentials."
+    );
+  } finally {
+    setSubmitting(false);
   }
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">

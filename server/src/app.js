@@ -34,7 +34,7 @@ const timeOffRequestRouter = require("./routes/timeOffRequests");
 
 
 // --- Routes ---
-app.use("/", authRouter);
+app.use("/auth", authRouter);
 app.use("/working-schedules", workingScheduleRouter);
 app.use("/departments", departmentRouter);
 app.use("/employees", employeeRouter);

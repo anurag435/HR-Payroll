@@ -3,37 +3,78 @@ import { mockEmployees } from "../mockData/employees";
 import { mockContracts } from "../mockData/contracts";
 import { mockWorkingSchedules } from "../mockData/workingSchedules";
 
-const USE_MOCK = true;
-const BASE_URL = "http://localhost:8000/api";
+const USE_MOCK = false;
+const BASE_URL = "http://localhost:3000";
 
 const delay = (ms = 300) => new Promise((res) => setTimeout(res, ms));
 
+async function request(path, options = {}) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const message =
+      json.message || (json.errors && json.errors.join(", ")) || `Request failed (${res.status})`;
+    throw new Error(message);
+  }
+
+  return json.data;
+}
+
 // ---- Auth --------------------------------------------------------------
-export async function login({ email, password }) {
+// All of these live under the authRouter, mounted at /auth in app.js:
+// /auth/login, /auth/logout, /auth/me, /auth/users, /auth/users/:id/role
+
+export async function login(firstArg, secondArg) {
+  let email;
+  let password;
+
+  if (typeof firstArg === "object" && firstArg !== null) {
+    email = firstArg.email;
+    password = firstArg.password;
+  } else {
+    email = firstArg;
+    password = secondArg;
+  }
+
   if (USE_MOCK) {
     await delay();
     const user = mockUsers.find((u) => u.workEmail === email);
     if (!user) throw new Error("No account found for this email.");
     return { token: "mock-token", user };
   }
-  const res = await fetch(`${BASE_URL}/auth/login`, {
+
+  return request("/auth/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) throw new Error("Invalid email or password.");
-  return res.json();
 }
 
-// ---- Users ---------------------------------------------------------------
-export async function getUsers() {
+export async function getMe() {
+  if (USE_MOCK) return mockUsers[0];
+  return request("/auth/me");
+}
+
+export async function logoutUser() {
+  if (USE_MOCK) return { message: "Logged out" };
+  return request("/auth/logout", { method: "POST" });
+}
+
+export const loginUser = login;
+
+// ---- Users (Admin only) --------------------------------------------------
+export async function getUsers(params = {}) {
   if (USE_MOCK) {
     await delay();
     return [...mockUsers];
   }
-  const res = await fetch(`${BASE_URL}/users`);
-  if (!res.ok) throw new Error("Failed to load users.");
-  return res.json();
+  const query = new URLSearchParams(params).toString();
+  return request(`/auth/users${query ? `?${query}` : ""}`);
 }
 
 export async function createUser(payload) {
@@ -43,40 +84,37 @@ export async function createUser(payload) {
     mockUsers.push(newUser);
     return newUser;
   }
-  const res = await fetch(`${BASE_URL}/users`, {
+  return request("/auth/users", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("Failed to create user.");
-  return res.json();
 }
 
-export async function updateUser(id, payload) {
+export async function updateUserRole(id, role) {
   if (USE_MOCK) {
     await delay();
     const idx = mockUsers.findIndex((u) => u.id === id);
-    if (idx !== -1) mockUsers[idx] = { ...mockUsers[idx], ...payload };
+    if (idx !== -1) mockUsers[idx] = { ...mockUsers[idx], role };
     return mockUsers[idx];
   }
-  const res = await fetch(`${BASE_URL}/users/${id}`, {
+  return request(`/auth/users/${id}/role`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ role }),
   });
-  if (!res.ok) throw new Error("Failed to update user.");
-  return res.json();
+}
+
+export async function updateUser(id, payload) {
+  return updateUserRole(id, payload.role);
 }
 
 // ---- Employees -------------------------------------------------------------
-export async function getEmployees() {
+export async function getEmployees(params = {}) {
   if (USE_MOCK) {
     await delay();
-    return [...mockEmployees];
+    return { employees: [...mockEmployees], pagination: null };
   }
-  const res = await fetch(`${BASE_URL}/employees`);
-  if (!res.ok) throw new Error("Failed to load employees.");
-  return res.json();
+  const query = new URLSearchParams(params).toString();
+  return request(`/employees${query ? `?${query}` : ""}`);
 }
 
 export async function getEmployeeById(id) {
@@ -84,22 +122,73 @@ export async function getEmployeeById(id) {
     await delay();
     const emp = mockEmployees.find((e) => e.id === id);
     if (!emp) throw new Error("Employee not found.");
-    return emp;
+    return { employee: emp, relatedCounts: { contracts: 0, attendance: 0, timeOff: 0 } };
   }
-  const res = await fetch(`${BASE_URL}/employees/${id}`);
-  if (!res.ok) throw new Error("Failed to load employee.");
-  return res.json();
+  return request(`/employees/${id}`);
+}
+
+export async function createEmployee(payload) {
+  if (USE_MOCK) {
+    await delay();
+    const newEmp = { id: `e${mockEmployees.length + 1}`, ...payload };
+    mockEmployees.push(newEmp);
+    return newEmp;
+  }
+  return request("/employees", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateEmployee(id, payload) {
+  if (USE_MOCK) {
+    await delay();
+    const idx = mockEmployees.findIndex((e) => e.id === id);
+    if (idx !== -1) mockEmployees[idx] = { ...mockEmployees[idx], ...payload };
+    return mockEmployees[idx];
+  }
+  return request(`/employees/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function archiveEmployee(id) {
+  if (USE_MOCK) {
+    await delay();
+    return { id, status: "Inactive" };
+  }
+  return request(`/employees/${id}/archive`, { method: "PATCH" });
+}
+
+// ---- Departments -----------------------------------------------------------
+export async function getDepartments() {
+  if (USE_MOCK) {
+    await delay();
+    return [];
+  }
+  return request("/departments");
+}
+
+export async function createDepartment(payload) {
+  if (USE_MOCK) {
+    await delay();
+    return { id: `d${Date.now()}`, ...payload };
+  }
+  return request("/departments", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 // ---- Contracts -------------------------------------------------------------
-export async function getContracts() {
+export async function getContracts(params = {}) {
   if (USE_MOCK) {
     await delay();
     return [...mockContracts];
   }
-  const res = await fetch(`${BASE_URL}/contracts`);
-  if (!res.ok) throw new Error("Failed to load contracts.");
-  return res.json();
+  const query = new URLSearchParams(params).toString();
+  return request(`/contracts${query ? `?${query}` : ""}`);
 }
 
 export async function getContractById(id) {
@@ -109,9 +198,18 @@ export async function getContractById(id) {
     if (!contract) throw new Error("Contract not found.");
     return contract;
   }
-  const res = await fetch(`${BASE_URL}/contracts/${id}`);
-  if (!res.ok) throw new Error("Failed to load contract.");
-  return res.json();
+  return request(`/contracts/${id}`);
+}
+
+export async function createContract(payload) {
+  if (USE_MOCK) {
+    await delay();
+    return { id: `c${Date.now()}`, ...payload };
+  }
+  return request("/contracts", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 // ---- Working Schedules -------------------------------------------------------------
@@ -120,9 +218,7 @@ export async function getWorkingSchedules() {
     await delay();
     return [...mockWorkingSchedules];
   }
-  const res = await fetch(`${BASE_URL}/working-schedules`);
-  if (!res.ok) throw new Error("Failed to load working schedules.");
-  return res.json();
+  return request("/working-schedules");
 }
 
 export async function getWorkingScheduleById(id) {
@@ -132,7 +228,5 @@ export async function getWorkingScheduleById(id) {
     if (!schedule) throw new Error("Working schedule not found.");
     return schedule;
   }
-  const res = await fetch(`${BASE_URL}/working-schedules/${id}`);
-  if (!res.ok) throw new Error("Failed to load working schedule.");
-  return res.json();
+  return request(`/working-schedules/${id}`);
 }
