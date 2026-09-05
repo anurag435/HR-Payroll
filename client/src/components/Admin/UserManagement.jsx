@@ -1,16 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import { getUsers, getEmployees, createUser, updateUser } from "../../services/api";
-import { ROLES, roleLabel } from "../../mockData/roles";
+import {
+  getUsers,
+  getEmployees,
+  createUser,
+  updateUserRole,
+  updateUserStatus,
+} from "../../services/api";
+import { ROLE_OPTIONS, roleLabel } from "../../constants/roles";
+import { useAuth } from "../../context/useAuth";
 import StatusBadge from "../common/StatusBadge";
 
 const EMPTY_FORM = {
-  employeeId: "",
-  workEmail: "",
-  role: "",
-  status: "active",
+  name: "",
+  email: "",
+  password: "",
+  role: "Employee",
+  employee: "",
 };
 
 export default function UserManagement() {
+  const { user: currentUser } = useAuth();
+
   const [users, setUsers] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,69 +28,101 @@ export default function UserManagement() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
 
-  const [editingUserId, setEditingUserId] = useState(null); // null = creating new
+  const [editingUserId, setEditingUserId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [editRole, setEditRole] = useState("");
+  const [editActive, setEditActive] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function load() {
+  async function loadAll() {
+    setLoading(true);
+    try {
       const [u, e] = await Promise.all([getUsers(), getEmployees()]);
-      setUsers(u);
-      setEmployees(e);
+      setUsers(u || []);
+      setEmployees(e?.employees || []);
+    } catch (err) {
+      console.error("Failed to load users/employees:", err);
+    } finally {
       setLoading(false);
     }
-    load();
+  }
+
+  useEffect(() => {
+    loadAll();
   }, []);
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
+      const q = search.toLowerCase();
       const matchesSearch =
-        !search ||
-        u.employeeName.toLowerCase().includes(search.toLowerCase()) ||
-        u.workEmail.toLowerCase().includes(search.toLowerCase());
+        !search || (u.name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
       const matchesRole = !roleFilter || u.role === roleFilter;
       return matchesSearch && matchesRole;
     });
   }, [users, search, roleFilter]);
 
+  const employeesWithoutAccount = useMemo(() => {
+    const linkedIds = new Set(users.map((u) => u.employee?._id).filter(Boolean));
+    return employees.filter((e) => !linkedIds.has(e._id));
+  }, [employees, users]);
+
   function startNewUser() {
     setEditingUserId(null);
     setForm(EMPTY_FORM);
+    setError("");
   }
 
-  function startEditUser(user) {
-    setEditingUserId(user.id);
-    setForm({
-      employeeId: user.employeeId ?? "",
-      workEmail: user.workEmail,
-      role: user.role,
-      status: user.status,
-    });
+  function startEditUser(u) {
+    setEditingUserId(u._id);
+    setEditRole(u.role);
+    setEditActive(u.isActive);
+    setError("");
   }
 
-  async function handleSave() {
-    if (!form.employeeId || !form.workEmail || !form.role) return;
+  const isEditingSelf = editingUserId && currentUser?._id === editingUserId;
+
+  async function handleCreate() {
+    setError("");
+    if (!form.name || !form.email || !form.password || !form.role) return;
     setSaving(true);
     try {
-      const employee = employees.find((e) => e.id === form.employeeId);
       const payload = {
-        employeeId: form.employeeId,
-        employeeName: employee?.name ?? "",
-        workEmail: form.workEmail,
+        name: form.name,
+        email: form.email,
+        password: form.password,
         role: form.role,
-        status: form.status,
       };
+      if (form.employee) payload.employee = form.employee;
 
-      if (editingUserId) {
-        const updated = await updateUser(editingUserId, payload);
-        setUsers((prev) =>
-          prev.map((u) => (u.id === editingUserId ? updated : u))
-        );
-      } else {
-        const created = await createUser(payload);
-        setUsers((prev) => [...prev, created]);
-      }
+      const created = await createUser(payload);
+      setUsers((prev) => [created, ...prev]);
       startNewUser();
+    } catch (err) {
+      setError(err.message || "Failed to create user.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSaveEdit() {
+    setError("");
+    setSaving(true);
+    try {
+      const target = users.find((u) => u._id === editingUserId);
+      let updated = target;
+
+      if (editRole !== target.role) {
+        updated = await updateUserRole(editingUserId, editRole);
+      }
+      if (editActive !== target.isActive) {
+        updated = await updateUserStatus(editingUserId, editActive);
+      }
+
+      setUsers((prev) => prev.map((u) => (u._id === editingUserId ? updated : u)));
+      startNewUser();
+    } catch (err) {
+      setError(err.message || "Failed to update user.");
     } finally {
       setSaving(false);
     }
@@ -93,9 +135,7 @@ export default function UserManagement() {
         <div className="panel p-6">
           <div className="flex items-center gap-3 mb-6">
             <h1 className="text-lg font-semibold">User Management</h1>
-            <span className="badge-inactive border-accent/40 text-accent">
-              Admin only
-            </span>
+            <span className="badge-inactive border-accent/40 text-accent">Admin only</span>
           </div>
 
           <div className="flex flex-wrap gap-3 mb-5">
@@ -104,21 +144,15 @@ export default function UserManagement() {
             </button>
             <input
               type="text"
-              placeholder="Search users, employees or email..."
+              placeholder="Search users or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="field-input flex-1 min-w-[200px]"
+              className="field-input flex-1 min-w-50"
             />
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="field-input w-auto"
-            >
+            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="field-input w-auto">
               <option value="">Role Filter</option>
-              {ROLES.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
+              {ROLE_OPTIONS.map((r) => (
+                <option key={r.value} value={r.value}>{r.label}</option>
               ))}
             </select>
           </div>
@@ -128,39 +162,36 @@ export default function UserManagement() {
               <thead>
                 <tr className="text-left text-text-secondary border-b border-surface-border">
                   <th className="py-2 pr-4 font-medium">User</th>
-                  <th className="py-2 pr-4 font-medium">Work Email</th>
+                  <th className="py-2 pr-4 font-medium">Email</th>
+                  <th className="py-2 pr-4 font-medium">Linked Employee</th>
                   <th className="py-2 pr-4 font-medium">Role</th>
                   <th className="py-2 pr-4 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
-                  <tr>
-                    <td colSpan={4} className="py-6 text-center text-text-muted">
-                      Loading users…
-                    </td>
-                  </tr>
+                  <tr><td colSpan={5} className="py-6 text-center text-text-muted">Loading users…</td></tr>
                 )}
                 {!loading && filteredUsers.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="py-6 text-center text-text-muted">
-                      No users match your search.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={5} className="py-6 text-center text-text-muted">No users match your search.</td></tr>
                 )}
                 {filteredUsers.map((u) => (
                   <tr
-                    key={u.id}
+                    key={u._id}
                     onClick={() => startEditUser(u)}
                     className={`cursor-pointer border-b border-surface-border/60 hover:bg-surface-raised transition-colors ${
-                      editingUserId === u.id ? "bg-surface-raised" : ""
+                      editingUserId === u._id ? "bg-surface-raised" : ""
                     }`}
                   >
-                    <td className="py-3 pr-4">{u.employeeName}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{u.workEmail}</td>
+                    <td className="py-3 pr-4">
+                      {u.name}
+                      {currentUser?._id === u._id && <span className="text-xs text-text-muted ml-1">(you)</span>}
+                    </td>
+                    <td className="py-3 pr-4 text-text-secondary">{u.email}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{u.employee?.name || "—"}</td>
                     <td className="py-3 pr-4 text-text-secondary">{roleLabel(u.role)}</td>
                     <td className="py-3 pr-4">
-                      <StatusBadge status={u.status} />
+                      <StatusBadge status={u.isActive ? "active" : "inactive"} />
                     </td>
                   </tr>
                 ))}
@@ -169,115 +200,150 @@ export default function UserManagement() {
           </div>
 
           <p className="text-xs text-text-muted mt-4">
-            User accounts are separate from Employee records, but should be
-            linked to an employee for access and ownership.
+            User accounts are separate from Employee records. Name and email can't be changed after
+            creation from here — only role and active status can.
           </p>
         </div>
 
-        {/* Right: create / edit panel */}
         <div className="panel p-6 h-fit">
           <h2 className="text-sm font-semibold mb-4">
-            {editingUserId ? "Edit User" : "Create / Edit User"}
+            {editingUserId ? "Edit Access" : "Create User"}
           </h2>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs text-text-secondary mb-1.5">
-                Employee *
-              </label>
-              <select
-                value={form.employeeId}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, employeeId: e.target.value }))
-                }
-                className="field-input"
-              >
-                <option value="">Select employee</option>
-                {employees.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name} — {e.department}
-                  </option>
-                ))}
-              </select>
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">
+              {error}
             </div>
+          )}
 
-            <div>
-              <label className="block text-xs text-text-secondary mb-1.5">
-                Work Email *
-              </label>
-              <input
-                type="email"
-                value={form.workEmail}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, workEmail: e.target.value }))
-                }
-                placeholder="employee@company.com"
-                className="field-input"
-              />
-            </div>
+          {editingUserId ? (
+            <div className="space-y-4">
+              {isEditingSelf && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs rounded-md">
+                  You can't change your own role or deactivate your own account — ask another Admin.
+                </div>
+              )}
 
-            <div>
-              <label className="block text-xs text-text-secondary mb-2">
-                Roles *
-              </label>
-              <div className="space-y-2">
-                {ROLES.map((r) => (
-                  <label
-                    key={r.value}
-                    className="flex items-center gap-2 text-sm text-text-primary cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={r.value}
-                      checked={form.role === r.value}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, role: e.target.value }))
-                      }
-                      className="accent-accent"
-                    />
-                    {r.label}
-                  </label>
-                ))}
+              <div>
+                <label className="block text-xs text-text-secondary mb-2">Role</label>
+                <div className="space-y-2">
+                  {ROLE_OPTIONS.map((r) => (
+                    <label key={r.value} className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+                      <input
+                        type="radio"
+                        name="editRole"
+                        value={r.value}
+                        checked={editRole === r.value}
+                        disabled={isEditingSelf}
+                        onChange={(e) => setEditRole(e.target.value)}
+                        className="accent-accent"
+                      />
+                      {r.label}
+                    </label>
+                  ))}
+                </div>
               </div>
-              {/* Section 3 rule: a user must never be able to change their
-                  own role — enforce that in the real API layer (only allow
-                  this form for users other than the signed-in admin, or
-                  disable the role field entirely when editing yourself). */}
-            </div>
 
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-text-secondary">
-                Account Status
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-text-secondary">Account Status</label>
+                <button
+                  type="button"
+                  disabled={isEditingSelf}
+                  onClick={() => setEditActive((a) => !a)}
+                  className={`${editActive ? "badge-active" : "badge-inactive"} disabled:opacity-50`}
+                >
+                  {editActive ? "Active" : "Inactive"}
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={handleSaveEdit} disabled={saving || isEditingSelf} className="btn-primary flex-1">
+                  {saving ? "Saving…" : "Save Access"}
+                </button>
+                <button onClick={startNewUser} className="border border-surface-border text-sm rounded-md px-4 py-2">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-text-secondary mb-1.5">Full Name *</label>
+                <input
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="e.g. Jane Doe"
+                  className="field-input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-secondary mb-1.5">Work Email *</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="employee@company.com"
+                  className="field-input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-secondary mb-1.5">Password *</label>
+                <input
+                  type="password"
+                  minLength={8}
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                  placeholder="At least 8 characters"
+                  className="field-input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-secondary mb-1.5">
+                  Linked Employee (optional)
+                </label>
+                <select
+                  value={form.employee}
+                  onChange={(e) => setForm((f) => ({ ...f, employee: e.target.value }))}
+                  className="field-input"
+                >
+                  <option value="">No linked employee</option>
+                  {employeesWithoutAccount.map((e) => (
+                    <option key={e._id} value={e._id}>{e.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-text-secondary mb-2">Role *</label>
+                <div className="space-y-2">
+                  {ROLE_OPTIONS.map((r) => (
+                    <label key={r.value} className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+                      <input
+                        type="radio"
+                        name="role"
+                        value={r.value}
+                        checked={form.role === r.value}
+                        onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                        className="accent-accent"
+                      />
+                      {r.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               <button
-                type="button"
-                onClick={() =>
-                  setForm((f) => ({
-                    ...f,
-                    status: f.status === "active" ? "inactive" : "active",
-                  }))
-                }
-                className={
-                  form.status === "active" ? "badge-active" : "badge-inactive"
-                }
+                onClick={handleCreate}
+                disabled={saving || !form.name || !form.email || !form.password || !form.role}
+                className="btn-primary"
               >
-                {form.status === "active" ? "Active" : "Inactive"}
+                {saving ? "Creating…" : "Create User"}
               </button>
             </div>
-
-            <button
-              onClick={handleSave}
-              disabled={saving || !form.employeeId || !form.workEmail || !form.role}
-              className="btn-primary"
-            >
-              {saving
-                ? "Saving…"
-                : editingUserId
-                ? "Save Access"
-                : "Create User / Save Access"}
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </div>

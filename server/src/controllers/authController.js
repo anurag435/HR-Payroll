@@ -93,4 +93,24 @@ const listUsers = async (req, res) => {
   return new ApiResponse(200, users, "Users fetched").send(res);
 };
 
-module.exports = { login, logout, getMe, createUser, updateUserRole, listUsers };
+const updateUserStatus = async (req, res) => {
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  if (typeof isActive !== "boolean") {
+    throw new ApiError(400, "isActive must be true or false");
+  }
+
+  if (req.user._id.toString() === id && isActive === false) {
+    throw new ApiError(403, "You cannot deactivate your own account");
+  }
+
+  const user = await User.findByIdAndUpdate(id, { isActive }, { new: true });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return new ApiResponse(200, user, `User ${isActive ? "activated" : "deactivated"}`).send(res);
+};
+
+module.exports = { login, logout, getMe, createUser, updateUserRole, listUsers, updateUserStatus };

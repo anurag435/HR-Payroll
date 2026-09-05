@@ -1,12 +1,23 @@
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import TopNav from "./TopNav";
+import { useAuth } from "../../context/useAuth";
 
-// This layout wraps every authenticated page. Because it renders
-// <Outlet /> instead of a specific page, the TopNav component itself
-// never unmounts when you navigate between /employees, /payroll, etc —
-// only the content below it swaps out. That's what makes the nav feel
-// stable and consistent everywhere.
 export default function AppLayout() {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-sm text-text-muted">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
   return (
     <div className="min-h-screen bg-surface">
       <TopNav />

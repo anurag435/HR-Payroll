@@ -28,6 +28,13 @@ router.patch(
   asyncHandler(authController.updateUserRole)
 );
 
+router.patch(
+  "/users/:id/status",
+  verifyJWT,
+  requireRole([ROLES.ADMIN]),
+  asyncHandler(authController.updateUserStatus)
+);
+
 router.get(
   "/users",
   verifyJWT,

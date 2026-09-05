@@ -1,36 +1,45 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { user, login, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e) {
-  e.preventDefault();
-  setError("");
-  setSubmitting(true);
-
-  try {
-    const data = await login(email, password);
-
-    const user = data.user || data;
-    const role = user.role ? user.role.toLowerCase() : "";
-    navigate(role === "admin" ? "/admin/users" : "/employees");
-  } catch (err) {
-    setError(
-      err.response?.data?.message ||
-      err.message ||
-      "Login failed. Please check your credentials."
-    );
-  } finally {
-    setSubmitting(false);
+  if (!loading && user) {
+    return <Navigate to="/employees" replace />;
   }
-}
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const data = await login(email, password);
+      const loggedInUser = data.user;
+
+      const redirectTo = location.state?.from?.pathname;
+      // "/" isn't a real deep-link target — it just redirects everyone to
+      // /employees, so it should never override the role-based redirect.
+      if (redirectTo && redirectTo !== "/") {
+        navigate(redirectTo, { replace: true });
+      } else if (loggedInUser.role === "Admin") {
+        navigate("/admin/users", { replace: true });
+      } else {
+        navigate("/employees", { replace: true });
+      }
+    } catch (err) {
+      setError(err.message || "Login failed. Please check your credentials.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">

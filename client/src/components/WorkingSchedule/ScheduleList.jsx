@@ -10,14 +10,17 @@ export default function ScheduleList() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getWorkingSchedules().then((data) => {
-      setSchedules(data);
-      setLoading(false);
-    });
+    getWorkingSchedules()
+      .then((data) => setSchedules(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error("Failed to load working schedules:", err);
+        setSchedules([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const filtered = useMemo(
-    () => schedules.filter((s) => s.name.toLowerCase().includes(search.toLowerCase())),
+    () => schedules.filter((s) => (s.name || "").toLowerCase().includes(search.toLowerCase())),
     [schedules, search]
   );
 
@@ -58,17 +61,22 @@ export default function ScheduleList() {
                 </tr>
               </thead>
               <tbody>
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-6 text-center text-text-muted">No schedules found.</td>
+                  </tr>
+                )}
                 {filtered.map((s) => (
                   <tr
-                    key={s.id}
-                    onClick={() => navigate(`/working-schedule/${s.id}`)}
+                    key={s._id}
+                    onClick={() => navigate(`/working-schedule/${s._id}`)}
                     className="cursor-pointer border-b border-surface-border/60 hover:bg-surface-raised transition-colors"
                   >
                     <td className="py-3 pr-4 font-medium">{s.name}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{s.daysPerWeek}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{s.hoursPerWeek}h</td>
-                    <td className="py-3 pr-4 text-text-secondary">{s.company}</td>
-                    <td className="py-3 pr-4"><StatusBadge status={s.status} /></td>
+                    <td className="py-3 pr-4 text-text-secondary">{s.days?.length ?? 0}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{s.totalWeeklyHours ?? 0}h</td>
+                    <td className="py-3 pr-4 text-text-secondary">{s.company || "—"}</td>
+                    <td className="py-3 pr-4"><StatusBadge status={(s.status || "Active").toLowerCase()} /></td>
                   </tr>
                 ))}
               </tbody>

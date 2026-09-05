@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import AttendanceWidget from "./AttendanceWidget";
+import { roleLabel } from "../../constants/roles";
 
 function NavDropdown({ label, items, active }) {
   const [open, setOpen] = useState(false);
@@ -45,8 +45,8 @@ export default function TopNav() {
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     navigate("/login");
   }
 
@@ -54,6 +54,10 @@ export default function TopNav() {
     `px-3 py-2 text-sm rounded-md transition-colors ${
       isActive ? "text-accent font-medium" : "text-text-secondary hover:text-text-primary"
     }`;
+
+  const displayName = user?.name ?? "Guest";
+  const initial = displayName[0]?.toUpperCase() ?? "?";
+  const isAdmin = user?.role === "Admin";
 
   return (
     <header className="sticky top-0 z-10 bg-surface-panel border-b border-surface-border">
@@ -79,10 +83,9 @@ export default function TopNav() {
             <NavDropdown
               label="Time Off"
               items={[
-                { label: "Dashboard", to: "/timeoff/dashboard" },
-                { label: "Time offs", to: "/timeoff/requests" },
-                { label: "Time off Types", to: "/timeoff/types" },
+                { label: "Requests", to: "/timeoff/requests" },
                 { label: "Allocations", to: "/timeoff/allocations" },
+                { label: "Time Off Types", to: "/timeoff/types" },
               ]}
             />
             <NavLink to="/payroll" className={linkClass}>
@@ -91,25 +94,24 @@ export default function TopNav() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          <AttendanceWidget />
-          <div className="relative">
+        <div className="relative">
           <button
             onClick={() => setProfileOpen((o) => !o)}
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-surface-raised transition-colors"
           >
             <div className="w-7 h-7 rounded-full bg-accent/15 text-accent flex items-center justify-center text-xs font-semibold">
-              {user?.employeeName?.[0] ?? "?"}
+              {initial}
             </div>
           </button>
 
           {profileOpen && (
             <div className="absolute right-0 top-full mt-1 w-48 panel py-1 z-20">
               <div className="px-4 py-2 border-b border-surface-border">
-                <p className="text-sm font-medium truncate">{user?.employeeName ?? "Guest"}</p>
-                <p className="text-xs text-text-muted truncate">{user?.workEmail}</p>
+                <p className="text-sm font-medium truncate">{displayName}</p>
+                <p className="text-xs text-text-muted truncate">{user?.email}</p>
+                <p className="text-xs text-accent truncate">{roleLabel(user?.role)}</p>
               </div>
-              {user?.role === "admin" && (
+              {isAdmin && (
                 <Link
                   to="/admin/users"
                   onClick={() => setProfileOpen(false)}
@@ -125,8 +127,7 @@ export default function TopNav() {
                 Log out
               </button>
             </div>
-                    )}
-          </div>
+          )}
         </div>
       </div>
     </header>

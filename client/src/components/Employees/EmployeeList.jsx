@@ -28,7 +28,10 @@ export default function EmployeeList() {
           jobPosition: emp.jobPosition || emp.position || emp.designation || "—",
           department: typeof emp.department === "object" ? emp.department?.name : (emp.department || "—"),
           workEmail: emp.workEmail || emp.email || "—",
-          status: emp.status || "active"
+          // Backend status is "Active"/"Inactive" (capitalized) — StatusBadge
+          // only recognizes lowercase keys, so without normalizing here a
+          // real employee's badge silently fell through to the wrong style.
+          status: (emp.status || "active").toLowerCase()
         }));
 
         setEmployees(normalized);

@@ -3,11 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { getContracts } from "../../services/api";
 
 function StatusPill({ status }) {
-  return status === "running" ? (
-    <span className="badge-active">Running</span>
-  ) : (
-    <span className="badge-inactive">Expired</span>
-  );
+  const styles = {
+    Active: "badge-active",
+    Draft: "badge-pending",
+    Expired: "badge-inactive",
+    Cancelled: "badge-inactive",
+  };
+  return <span className={styles[status] || "badge-inactive"}>{status}</span>;
+}
+
+function formatDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export default function ContractList() {
@@ -17,21 +24,23 @@ export default function ContractList() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    getContracts().then((data) => {
-      setContracts(data);
-      setLoading(false);
-    });
+    getContracts()
+      .then((data) => setContracts(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error("Failed to load contracts:", err);
+        setContracts([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const filtered = useMemo(
-    () =>
-      contracts.filter(
-        (c) =>
-          c.employeeName.toLowerCase().includes(search.toLowerCase()) ||
-          c.contractNumber.toLowerCase().includes(search.toLowerCase())
-      ),
-    [contracts, search]
-  );
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return contracts.filter(
+      (c) =>
+        (c.employee?.name || "").toLowerCase().includes(q) ||
+        (c.contractNumber || "").toLowerCase().includes(q)
+    );
+  }, [contracts, search]);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
@@ -51,7 +60,7 @@ export default function ContractList() {
             placeholder="Search contracts..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="field-input flex-1 min-w-[200px]"
+            className="field-input flex-1 min-w-50"
           />
         </div>
 
@@ -80,15 +89,15 @@ export default function ContractList() {
                 )}
                 {filtered.map((c) => (
                   <tr
-                    key={c.id}
-                    onClick={() => navigate(`/contracts/${c.id}`)}
+                    key={c._id}
+                    onClick={() => navigate(`/contracts/${c._id}`)}
                     className="cursor-pointer border-b border-surface-border/60 hover:bg-surface-raised transition-colors"
                   >
                     <td className="py-3 pr-4 font-medium">{c.contractNumber}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{c.employeeName}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{c.startDate}</td>
-                    <td className="py-3 pr-4 text-text-secondary">{c.endDate ?? "—"}</td>
-                    <td className="py-3 pr-4 text-text-secondary">₹{c.wageMonth.toLocaleString("en-IN")}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{c.employee?.name || "—"}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{formatDate(c.startDate)}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{formatDate(c.endDate)}</td>
+                    <td className="py-3 pr-4 text-text-secondary">₹{Number(c.wage || 0).toLocaleString("en-IN")}</td>
                     <td className="py-3 pr-4"><StatusPill status={c.status} /></td>
                   </tr>
                 ))}
@@ -98,7 +107,7 @@ export default function ContractList() {
         )}
 
         <p className="text-xs text-text-muted mt-5">
-          Retain contract history, but keep the active Running contract obvious — payroll depends on it.
+          Retain contract history, but keep the active contract obvious — payroll depends on it.
         </p>
       </div>
     </div>

@@ -9,16 +9,7 @@ import {
   getEmployees,
   getWorkingSchedules,
 } from "../../services/api";
-
-// Must match the backend's ROLES enum exactly (constants/roles.js) —
-// these strings are sent as-is to POST /auth/users.
-const ROLE_OPTIONS = [
-  { value: "Employee", label: "Employee" },
-  { value: "HRManager", label: "HR Manager" },
-  { value: "HRPayrollUser", label: "HR Payroll User" },
-  { value: "HRPayrollManager", label: "HR Payroll Manager" },
-  { value: "Admin", label: "Admin" },
-];
+import { ROLE_OPTIONS } from "../../constants/roles";
 
 export default function EmployeeForm() {
   const { id } = useParams();
@@ -30,9 +21,6 @@ export default function EmployeeForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Dropdown option lists, fetched from the backend (these are real
-  // ObjectIds — department/manager/workingSchedule can't be free text,
-  // the backend validates and dereferences them).
   const [departments, setDepartments] = useState([]);
   const [managers, setManagers] = useState([]);
   const [schedules, setSchedules] = useState([]);
@@ -41,18 +29,15 @@ export default function EmployeeForm() {
 
   const [formData, setFormData] = useState({
     name: "",
-    email: "", // backend field is `email`, not `workEmail`
+    email: "",
     jobPosition: "",
     department: "",
     manager: "",
     workingSchedule: "",
-    // Only used when isNew — these create the linked login account
-    // via a SECOND api call (createUser) after the Employee is created.
     role: "Employee",
     password: "",
   });
 
-  // Load dropdown option lists once, regardless of create/edit mode.
   useEffect(() => {
     async function loadOptions() {
       try {
@@ -65,8 +50,6 @@ export default function EmployeeForm() {
         setManagers(emps?.employees || []);
         setSchedules(scheds || []);
       } catch (err) {
-        // Non-fatal — the form still works without dropdown data, the
-        // relevant fields just won't have options to pick from yet.
         console.error("Failed to load dropdown options:", err);
       }
     }
@@ -82,8 +65,6 @@ export default function EmployeeForm() {
     const fetchEmployee = async () => {
       try {
         setLoading(true);
-        // getEmployeeById returns { employee, relatedCounts } — NOT the
-        // employee document directly.
         const { employee: emp, relatedCounts: counts } = await getEmployeeById(id);
 
         setFormData({
@@ -113,11 +94,6 @@ export default function EmployeeForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  /**
-   * Strips empty-string reference fields so we never send department: ""
-   * to the backend — Zod's ObjectId validator will reject an empty
-   * string, whereas omitting the field entirely is valid (it's optional).
-   */
   function buildEmployeePayload(data) {
     const payload = {
       name: data.name,
@@ -137,15 +113,9 @@ export default function EmployeeForm() {
 
     try {
       if (isNew) {
-        // Step 1: create the Employee (HR record) — no password/role here,
-        // the backend's Employee model doesn't know about logins at all.
         const employee = await createEmployee(buildEmployeePayload(formData));
         const employeeId = employee._id;
 
-        // Step 2: create the linked login account. This call requires the
-        // CURRENT logged-in user to be an Admin — the backend enforces
-        // this with requireRole([Admin]) on POST /auth/users regardless
-        // of what the frontend shows.
         await createUser({
           name: formData.name,
           email: formData.email,
@@ -156,9 +126,6 @@ export default function EmployeeForm() {
 
         navigate(`/employees/${employeeId}`);
       } else {
-        // Edit mode: only the Employee record is updated here. Changing
-        // someone's role/password is a separate concern — use
-        // updateUserRole() from a Users/Accounts screen, not this form.
         await updateEmployee(id, buildEmployeePayload(formData));
         navigate(`/employees/${id}`);
       }
