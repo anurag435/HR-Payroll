@@ -3,6 +3,9 @@ import { mockEmployees } from "../mockData/employees";
 import { mockContracts } from "../mockData/contracts";
 import { mockWorkingSchedules } from "../mockData/workingSchedules";
 import { mockAttendance, MOCK_TODAY } from "../mockData/attendance";
+import { mockTimeOffTypes } from "../mockData/timeOffTypes";
+import { mockAllocations } from "../mockData/timeOffAllocations";
+import { mockTimeOffRequests } from "../mockData/timeOffRequests";
 
 const USE_MOCK = true;
 const BASE_URL = "http://localhost:8000/api";
@@ -166,8 +169,6 @@ export async function getAttendanceById(id) {
   return res.json();
 }
 
-// ---- Active check-in session (drives the Attendance Widget) --------------
-// In-memory map, keyed by employeeName: { checkInTime: Date }
 const activeSessions = {};
 
 export async function getActiveSession(employeeName) {
@@ -229,5 +230,127 @@ export async function checkOut(employeeName) {
     body: JSON.stringify({ employeeName }),
   });
   if (!res.ok) throw new Error("Failed to check out.");
+  return res.json();
+}
+
+// ---- Time Off Types -------------------------------------------------------------
+export async function getTimeOffTypes() {
+  if (USE_MOCK) {
+    await delay();
+    return [...mockTimeOffTypes];
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/types`);
+  if (!res.ok) throw new Error("Failed to load time off types.");
+  return res.json();
+}
+
+export async function getTimeOffTypeById(id) {
+  if (USE_MOCK) {
+    await delay();
+    const type = mockTimeOffTypes.find((t) => t.id === id);
+    if (!type) throw new Error("Time off type not found.");
+    return type;
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/types/${id}`);
+  if (!res.ok) throw new Error("Failed to load time off type.");
+  return res.json();
+}
+
+// ---- Time Off Allocations -------------------------------------------------------------
+export async function getAllocations() {
+  if (USE_MOCK) {
+    await delay();
+    return [...mockAllocations];
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/allocations`);
+  if (!res.ok) throw new Error("Failed to load allocations.");
+  return res.json();
+}
+
+export async function getAllocationById(id) {
+  if (USE_MOCK) {
+    await delay();
+    const alloc = mockAllocations.find((a) => a.id === id);
+    if (!alloc) throw new Error("Allocation not found.");
+    return alloc;
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/allocations/${id}`);
+  if (!res.ok) throw new Error("Failed to load allocation.");
+  return res.json();
+}
+
+export async function setAllocationStatus(id, status) {
+  if (USE_MOCK) {
+    await delay(150);
+    const idx = mockAllocations.findIndex((a) => a.id === id);
+    if (idx === -1) throw new Error("Allocation not found.");
+    mockAllocations[idx] = { ...mockAllocations[idx], status };
+    return mockAllocations[idx];
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/allocations/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error("Failed to update allocation status.");
+  return res.json();
+}
+
+// ---- Time Off Requests -------------------------------------------------------------
+export async function getTimeOffRequests() {
+  if (USE_MOCK) {
+    await delay();
+    return [...mockTimeOffRequests];
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/requests`);
+  if (!res.ok) throw new Error("Failed to load time off requests.");
+  return res.json();
+}
+
+export async function getTimeOffRequestById(id) {
+  if (USE_MOCK) {
+    await delay();
+    const req = mockTimeOffRequests.find((r) => r.id === id);
+    if (!req) throw new Error("Time off request not found.");
+    return req;
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/requests/${id}`);
+  if (!res.ok) throw new Error("Failed to load time off request.");
+  return res.json();
+}
+
+// Approving a request that uses an allocation reduces that allocation's
+// remaining balance — per the rule that approved leave should reduce the
+// employee's available balance for types that require allocation.
+export async function setRequestStatus(id, status) {
+  if (USE_MOCK) {
+    await delay(150);
+    const idx = mockTimeOffRequests.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error("Time off request not found.");
+    const request = mockTimeOffRequests[idx];
+    const wasApproved = request.status === "approved";
+    mockTimeOffRequests[idx] = { ...request, status };
+
+    if (status === "approved" && !wasApproved && request.allocationUsed) {
+      const allocIdx = mockAllocations.findIndex(
+        (a) => a.employeeName === request.employeeName && a.typeName === request.typeName
+      );
+      if (allocIdx !== -1) {
+        const durationDays = parseFloat(request.duration) || 0;
+        const alloc = mockAllocations[allocIdx];
+        const newTaken = alloc.taken + durationDays;
+        const newRemaining = Math.max(alloc.allocated - newTaken, 0);
+        mockAllocations[allocIdx] = { ...alloc, taken: newTaken, remaining: newRemaining };
+      }
+    }
+
+    return mockTimeOffRequests[idx];
+  }
+  const res = await fetch(`${BASE_URL}/timeoff/requests/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error("Failed to update request status.");
   return res.json();
 }

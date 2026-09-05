@@ -79,9 +79,10 @@ export default function TopNav() {
             <NavDropdown
               label="Time Off"
               items={[
-                { label: "Requests", to: "/timeoff/requests" },
+                { label: "Dashboard", to: "/timeoff/dashboard" },
+                { label: "Time offs", to: "/timeoff/requests" },
+                { label: "Time off Types", to: "/timeoff/types" },
                 { label: "Allocations", to: "/timeoff/allocations" },
-                { label: "Time Off Types", to: "/timeoff/types" },
               ]}
             />
             <NavLink to="/payroll" className={linkClass}>
