@@ -1,1 +1,61 @@
 @import "tailwindcss";
+
+@theme {
+  /* Light theme, Odoo-style palette */
+  --color-surface: #f7f7f9;         /* page background */
+  --color-surface-panel: #ffffff;   /* card / panel background */
+  --color-surface-raised: #f3f4f6;  /* inputs, table rows */
+  --color-surface-border: #e5e7eb;  /* hairline borders */
+
+  --color-accent: #714b67;          /* Odoo purple/maroon */
+  --color-accent-hover: #5c3d54;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+
+  --color-status-active: #16a34a;
+  --color-status-pending: #ca8a04;
+  --color-status-inactive: #6b7280;
+
+  --radius-card: 10px;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-text-primary;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-surface-panel border border-surface-border rounded-[10px] shadow-sm;
+  }
+
+  .field-input {
+    @apply w-full bg-surface-raised border border-surface-border rounded-md px-3 py-2
+           text-sm text-text-primary placeholder-text-muted
+           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent;
+  }
+
+  .btn-primary {
+    @apply w-full bg-accent hover:bg-accent-hover text-white font-medium
+           rounded-md py-2.5 text-sm transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .badge-active {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
+           text-status-active border-status-active/30 bg-status-active/10;
+  }
+
+  .badge-pending {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
+           text-status-pending border-status-pending/30 bg-status-pending/10;
+  }
+
+  .badge-inactive {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
+           text-status-inactive border-status-inactive/30 bg-status-inactive/10;
+  }
+}
