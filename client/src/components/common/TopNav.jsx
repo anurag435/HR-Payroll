@@ -121,9 +121,13 @@ export default function TopNav() {
               ]}
             />
             {canSeePayroll && (
-              <NavLink to="/payroll" className={linkClass}>
-                Payroll
-              </NavLink>
+              <NavDropdown
+                label="Payroll"
+                items={[
+                  { label: "Payruns", to: "/payroll" },
+                  { label: "Payslips", to: "/payroll/payslips" },
+                ]}
+              />
             )}
           </nav>
         </div>

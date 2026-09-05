@@ -2,7 +2,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Auth/Login";
 import UserManagement from "./components/Admin/UserManagement";
 import AppLayout from "./components/common/AppLayout";
-import ComingSoon from "./components/common/ComingSoon";
 import RequireRole from "./components/common/RequireRole";
 import EmployeeList from "./components/Employees/EmployeeList";
 import EmployeeForm from "./components/Employees/EmployeeForm";
@@ -19,6 +18,11 @@ import AllocationList from "./components/TimeOff/AllocationList";
 import AllocationForm from "./components/TimeOff/AllocationForm";
 import TypeList from "./components/TimeOff/TypeList";
 import TypeForm from "./components/TimeOff/TypeForm";
+import PayrunList from "./components/Payroll/PayrunList";
+import PayrunWizard from "./components/Payroll/PayrunWizard";
+import PayrunDetail from "./components/Payroll/PayrunDetail";
+import PayslipList from "./components/Payroll/PayslipList";
+import PayslipDetail from "./components/Payroll/PayslipDetail";
 import { ROLE_GROUPS, homeRouteForRole } from "./constants/roles";
 import { useAuth } from "./context/useAuth";
 
@@ -151,14 +155,44 @@ export default function App() {
           }
         />
 
+        {/* ---- Payroll: Payruns & Payslips ---------------------------- */}
         <Route
           path="/payroll"
           element={
             <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
-              <ComingSoon title="Payroll" />
+              <PayrunList />
             </RequireRole>
           }
         />
+        <Route
+          path="/payroll/payruns/new"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
+              <PayrunWizard />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll/payruns/:id"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
+              <PayrunDetail />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/payroll/payslips"
+          element={
+            <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
+              <PayslipList />
+            </RequireRole>
+          }
+        />
+        {/* Not role-gated on purpose: an Employee can open their own payslip
+            (e.g. via a link from elsewhere); the backend itself 403s anyone
+            trying to view a payslip that isn't theirs and isn't payroll staff. */}
+        <Route path="/payroll/payslips/:id" element={<PayslipDetail />} />
+
         <Route
           path="/admin/users"
           element={

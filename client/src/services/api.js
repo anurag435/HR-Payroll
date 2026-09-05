@@ -243,3 +243,43 @@ export async function approveTimeOffRequest(id) {
 export async function refuseTimeOffRequest(id) {
   return request(`/timeoff/requests/${id}/refuse`, { method: "PATCH" });
 }
+
+// ---- Payroll: Salary Structures (read-only here; config UI comes next) -----
+export async function getSalaryStructures() {
+  return request("/salary-structures");
+}
+
+// ---- Payroll: Payruns -------------------------------------------------------
+export async function getPayruns(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return request(`/payruns${query ? `?${query}` : ""}`);
+}
+export async function getPayrunById(id) {
+  return request(`/payruns/${id}`);
+}
+export async function createPayrun(payload) {
+  return request("/payruns", { method: "POST", body: JSON.stringify(payload) });
+}
+export async function computePayrun(id) {
+  return request(`/payruns/${id}/compute`, { method: "PATCH" });
+}
+export async function validatePayrun(id) {
+  return request(`/payruns/${id}/validate`, { method: "PATCH" });
+}
+export async function markPayrunPaid(id) {
+  return request(`/payruns/${id}/mark-paid`, { method: "PATCH" });
+}
+
+// ---- Payroll: Payslips -------------------------------------------------------
+export async function getPayslips(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  return request(`/payslips${query ? `?${query}` : ""}`);
+}
+export async function getPayslipById(id) {
+  return request(`/payslips/${id}`);
+}
+// Not a JSON call — used directly as an <a href> so the browser handles
+// the file download/inline PDF using the same auth cookie.
+export function getPayslipPdfUrl(id) {
+  return `${BASE_URL}/payslips/${id}/pdf`;
+}
