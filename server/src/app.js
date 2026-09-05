@@ -25,12 +25,16 @@ app.get("/api/health", (req, res) => {
 const authRouter = require("./routes/authRoutes");
 const workingScheduleRouter = require("./routes/workingSchedules");
 const departmentRouter = require("./routes/departments");
+const contractRouter = require("./routes/contracts");
+const employeeRouter = require("./routes/employees");
 
 
 // --- Routes ---
 app.use("/", authRouter);
 app.use("/working-schedules", workingScheduleRouter);
 app.use("/departments", departmentRouter);
+app.use("/employees", employeeRouter);
+app.use("/contracts", contractRouter);
 
 
 app.use(notFound);
