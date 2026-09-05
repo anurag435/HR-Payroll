@@ -31,7 +31,11 @@ const attendanceRouter = require("./routes/attendance");
 const timeOffTypeRouter = require("./routes/timeOffTypes");
 const timeOffAllocationRouter = require("./routes/timeOffAllocations");
 const timeOffRequestRouter = require("./routes/timeOffRequests");
-
+const salaryRuleRouter = require("./routes/salaryRules");
+const salaryStructureRouter = require("./routes/salaryStructures");
+const payrunRouter = require("./routes/payruns");
+const payslipRouter = require("./routes/payslips");
+const dashboardRouter = require("./routes/dashboard");
 
 // --- Routes ---
 app.use("/auth", authRouter);
@@ -43,7 +47,11 @@ app.use("/attendance", attendanceRouter);
 app.use("/timeoff/types", timeOffTypeRouter);
 app.use("/timeoff/allocations", timeOffAllocationRouter);
 app.use("/timeoff/requests", timeOffRequestRouter);
-
+app.use("/salary-rules", salaryRuleRouter);
+app.use("/salary-structures", salaryStructureRouter);
+app.use("/payruns", payrunRouter);
+app.use("/payslips", payslipRouter);
+app.use("/dashboard", dashboardRouter);
 
 app.use(notFound);
 app.use(errorHandler);
