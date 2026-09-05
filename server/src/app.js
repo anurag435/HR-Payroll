@@ -1,22 +1,50 @@
-const express = require('express');
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
-const connectDB = require("./config/database")
+
+const connectDB = require("./config/database");
+const { errorHandler, notFound } = require("./middleware/errorHandler");
 
 const app = express();
 
-app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
 
-const authRouter = require("./routes/auth");
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ success: true, message: "API is healthy" });
+});
 
-app.use("/",authRouter);
+//Routers
+const authRouter = require("./routes/authRoutes");
+
+// --- Routes ---
+app.use("/", authRouter);
+
+
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3000;
 
 connectDB()
-    .then(()=>{
-        console.log("Database Connected Succesfully");
-        app.listen(3000,()=>{
-            console.log("Server Started at Port 3000");
-        })
-    })
-    .catch((err)=>{
-        console.log("Error : DataBase can't Connect " + err.message);
-    })
+  .then(() => {
+    console.log("Database Connected Succesfully");
+    app.listen(PORT, () => {
+      console.log("Server Started at Port " + PORT);
+    });
+  })
+  .catch((err) => {
+    console.log("Error : DataBase can't Connect " + err.message);
+    process.exit(1);
+  });
+
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED REJECTION:", err);
+});
