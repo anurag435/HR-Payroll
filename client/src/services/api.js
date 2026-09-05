@@ -2,6 +2,7 @@ import { mockUsers } from "../mockData/users";
 import { mockEmployees } from "../mockData/employees";
 import { mockContracts } from "../mockData/contracts";
 import { mockWorkingSchedules } from "../mockData/workingSchedules";
+import { mockAttendance, MOCK_TODAY } from "../mockData/attendance";
 
 const USE_MOCK = true;
 const BASE_URL = "http://localhost:8000/api";
@@ -134,5 +135,99 @@ export async function getWorkingScheduleById(id) {
   }
   const res = await fetch(`${BASE_URL}/working-schedules/${id}`);
   if (!res.ok) throw new Error("Failed to load working schedule.");
+  return res.json();
+}
+
+// ---- Attendance -------------------------------------------------------------
+export async function getAttendance({ employeeName } = {}) {
+  if (USE_MOCK) {
+    await delay();
+    let rows = [...mockAttendance];
+    if (employeeName) {
+      rows = rows.filter((r) => r.employeeName === employeeName);
+    }
+    return rows;
+  }
+  const params = employeeName ? `?employee=${encodeURIComponent(employeeName)}` : "";
+  const res = await fetch(`${BASE_URL}/attendance${params}`);
+  if (!res.ok) throw new Error("Failed to load attendance.");
+  return res.json();
+}
+
+export async function getAttendanceById(id) {
+  if (USE_MOCK) {
+    await delay();
+    const record = mockAttendance.find((r) => r.id === id);
+    if (!record) throw new Error("Attendance record not found.");
+    return record;
+  }
+  const res = await fetch(`${BASE_URL}/attendance/${id}`);
+  if (!res.ok) throw new Error("Failed to load attendance record.");
+  return res.json();
+}
+
+// ---- Active check-in session (drives the Attendance Widget) --------------
+// In-memory map, keyed by employeeName: { checkInTime: Date }
+const activeSessions = {};
+
+export async function getActiveSession(employeeName) {
+  if (USE_MOCK) {
+    await delay(100);
+    return activeSessions[employeeName] ?? null;
+  }
+  const res = await fetch(`${BASE_URL}/attendance/active-session?employee=${encodeURIComponent(employeeName)}`);
+  if (!res.ok) throw new Error("Failed to load active session.");
+  return res.json();
+}
+
+export async function checkIn(employeeName) {
+  if (USE_MOCK) {
+    await delay(150);
+    activeSessions[employeeName] = { checkInTime: new Date() };
+    return activeSessions[employeeName];
+  }
+  const res = await fetch(`${BASE_URL}/attendance/check-in`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ employeeName }),
+  });
+  if (!res.ok) throw new Error("Failed to check in.");
+  return res.json();
+}
+
+export async function checkOut(employeeName) {
+  if (USE_MOCK) {
+    await delay(150);
+    const session = activeSessions[employeeName];
+    if (!session) throw new Error("No active session to check out from.");
+
+    const checkInTime = session.checkInTime;
+    const checkOutTime = new Date();
+    const workedHours = Math.round(((checkOutTime - checkInTime) / 3600000) * 100) / 100;
+
+    const newRecord = {
+      id: `a${mockAttendance.length + 1}`,
+      employeeId: null,
+      employeeName,
+      department: "",
+      manager: "",
+      date: MOCK_TODAY,
+      checkIn: checkInTime.toLocaleString(),
+      checkOut: checkOutTime.toLocaleString(),
+      workedHours,
+      overtime: workedHours > 8 ? Math.round((workedHours - 8) * 100) / 100 : 0,
+      status: "present",
+      notes: "System-generated from check in/out or manually corrected by an authorized user.",
+    };
+    mockAttendance.push(newRecord);
+    delete activeSessions[employeeName];
+    return newRecord;
+  }
+  const res = await fetch(`${BASE_URL}/attendance/check-out`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ employeeName }),
+  });
+  if (!res.ok) throw new Error("Failed to check out.");
   return res.json();
 }

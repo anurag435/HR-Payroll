@@ -45,7 +45,7 @@ export default function EmployeeForm() {
 
   const smartButtons = [
     { label: "Contracts", count: 0, to: "/contracts" },
-    { label: "Attendance", count: 0, to: "/attendance" },
+    { label: "Attendance", count: 0, to: employee ? `/attendance?employee=${encodeURIComponent(employee.name)}` : "/attendance" },
     { label: "Time Off", count: 0, to: "/timeoff/requests" },
     { label: "Allocations", count: 0, to: "/timeoff/allocations" },
   ];

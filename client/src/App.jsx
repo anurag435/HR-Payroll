@@ -9,6 +9,8 @@ import ContractList from "./components/Contracts/ContractList";
 import ContractForm from "./components/Contracts/ContractForm";
 import ScheduleList from "./components/WorkingSchedule/ScheduleList";
 import ScheduleForm from "./components/WorkingSchedule/ScheduleForm";
+import AttendanceList from "./components/Attendance/AttendanceList";
+import AttendanceForm from "./components/Attendance/AttendanceForm";
 
 export default function App() {
   return (
@@ -24,7 +26,8 @@ export default function App() {
         <Route path="/departments" element={<ComingSoon title="Departments" />} />
         <Route path="/working-schedule" element={<ScheduleList />} />
         <Route path="/working-schedule/:id" element={<ScheduleForm />} />
-        <Route path="/attendance" element={<ComingSoon title="Attendance" />} />
+        <Route path="/attendance" element={<AttendanceList />} />
+        <Route path="/attendance/:id" element={<AttendanceForm />} />
         <Route path="/timeoff/requests" element={<ComingSoon title="Time Off Requests" />} />
         <Route path="/timeoff/allocations" element={<ComingSoon title="Time Off Allocations" />} />
         <Route path="/timeoff/types" element={<ComingSoon title="Time Off Types" />} />
