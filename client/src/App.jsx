@@ -110,18 +110,8 @@ export default function App() {
           }
         />
 
-        {/* Every role can check their own attendance / submit time off,
-            so these stay open — the backend itself scopes the data to
-            "own records only" for anyone outside HR_STAFF. */}
+        {  }
         <Route path="/attendance" element={<AttendanceList />} />
-        <Route
-          path="/attendance/new"
-          element={
-            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
-              <AttendanceForm />
-            </RequireRole>
-          }
-        />
         <Route
           path="/attendance/:id"
           element={
@@ -153,14 +143,6 @@ export default function App() {
           }
         />
         <Route
-          path="/timeoff/types/new"
-          element={
-            <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
-              <TypeForm />
-            </RequireRole>
-          }
-        />
-        <Route
           path="/timeoff/types/:id"
           element={
             <RequireRole roles={ROLE_GROUPS.HR_STAFF}>
@@ -169,7 +151,7 @@ export default function App() {
           }
         />
 
-        {/* ---- Payroll: Payruns & Payslips ---------------------------- */}
+        {  }
         <Route
           path="/payroll"
           element={
@@ -202,28 +184,15 @@ export default function App() {
             </RequireRole>
           }
         />
-        {/* Not role-gated on purpose: an Employee can open their own payslip
-            (e.g. via a link from elsewhere); the backend itself 403s anyone
-            trying to view a payslip that isn't theirs and isn't payroll staff. */}
+        {  }
         <Route path="/payroll/payslips/:id" element={<PayslipDetail />} />
 
-        {/* ---- Payroll: Salary Structure / Rule config -------------------
-            Lists are readable by all PAYROLL_STAFF (HRPayrollUser included,
-            per spec's read-only access); create/edit is PAYROLL_CONFIG only
-            (HRPayrollManager/Admin) — matches the backend route guards. */}
+        {   }
         <Route
           path="/payroll/salary-rules"
           element={
             <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
               <SalaryRuleList />
-            </RequireRole>
-          }
-        />
-        <Route
-          path="/payroll/salary-rules/new"
-          element={
-            <RequireRole roles={ROLE_GROUPS.PAYROLL_CONFIG}>
-              <SalaryRuleForm />
             </RequireRole>
           }
         />
@@ -240,14 +209,6 @@ export default function App() {
           element={
             <RequireRole roles={ROLE_GROUPS.PAYROLL_STAFF}>
               <SalaryStructureList />
-            </RequireRole>
-          }
-        />
-        <Route
-          path="/payroll/salary-structures/new"
-          element={
-            <RequireRole roles={ROLE_GROUPS.PAYROLL_CONFIG}>
-              <SalaryStructureForm />
             </RequireRole>
           }
         />
