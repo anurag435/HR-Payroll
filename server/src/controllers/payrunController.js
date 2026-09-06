@@ -56,7 +56,11 @@ const computePayrun = async (req, res) => {
   const warnings = [];
 
   for (const employee of payrun.employees) {
-    const result = await computePayslipForEmployee(employee._id.toString(), payrun.period);
+    const result = await computePayslipForEmployee(
+      employee._id.toString(),
+      payrun.period,
+      payrun.salaryStructure
+    );
 
     if (!result.ok) {
       warnings.push(`${employee.name}: ${result.warning}`);

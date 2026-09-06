@@ -7,7 +7,11 @@ const EARNING_CATEGORIES = ["Basic", "Allowance"];
 const DEDUCTION_CATEGORIES = ["Deduction"];
 
 /**
- * Computes one employee's payslip for a given period.
+ * Computes one employee's payslip for a given period, using the Salary
+ * Structure selected on the Payrun (not the contract's own optional
+ * salaryStructure field — the Payrun's choice is what's authoritative,
+ * per spec: "Selected structures on a Payrun dictate the specific set
+ * of rules applied to calculate employee payslips").
  * Never throws for "expected" business situations (no active contract,
  * no structure, bad rule config) — instead returns { ok: false, warning }
  * so the caller (Payrun compute step) can surface it and keep going for
@@ -15,26 +19,23 @@ const DEDUCTION_CATEGORIES = ["Deduction"];
  *
  * @param {string} employeeId
  * @param {{startDate: Date, endDate: Date}} period
+ * @param {string} structureId the Payrun's salaryStructure id
  * @returns {Promise<{ok: true, contract, lines, gross, net} | {ok: false, warning: string}>}
  */
-async function computePayslipForEmployee(employeeId, period) {
+async function computePayslipForEmployee(employeeId, period, structureId) {
   try {
     const contract = await Contract.findActiveForPeriod(employeeId, period.startDate);
     if (!contract) {
       return { ok: false, warning: `No active contract found for this employee for the selected period` };
     }
 
-    if (!contract.salaryStructure) {
-      return { ok: false, warning: `Employee's active contract has no Salary Structure assigned` };
-    }
-
-    const structure = await SalaryStructure.findById(contract.salaryStructure).populate({
+    const structure = await SalaryStructure.findById(structureId).populate({
       path: "rules",
       options: { sort: { sequence: 1 } },
     });
 
     if (!structure) {
-      return { ok: false, warning: `Salary Structure referenced by the contract no longer exists` };
+      return { ok: false, warning: `The Payrun's Salary Structure no longer exists` };
     }
     if (!structure.rules || structure.rules.length === 0) {
       return { ok: false, warning: `Salary Structure "${structure.name}" has no rules configured` };
