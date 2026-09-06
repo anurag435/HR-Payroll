@@ -10,6 +10,7 @@ import {
   getWorkingSchedules,
 } from "../../services/api";
 import { ROLE_OPTIONS } from "../../constants/roles";
+import PasswordInput from "../common/PasswordInput";
 
 export default function EmployeeForm() {
   const { id } = useParams();
@@ -187,7 +188,7 @@ export default function EmployeeForm() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">
+          <div className="mb-4 p-3 bg-status-danger/10 border border-status-danger/20 text-status-danger text-sm rounded-md">
             {error}
           </div>
         )}
@@ -324,15 +325,13 @@ export default function EmployeeForm() {
                 <label className="block text-xs text-text-secondary mb-1.5">
                   Initial Account Password *
                 </label>
-                <input
+                <PasswordInput
                   name="password"
-                  type="password"
                   required
                   minLength={8}
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="At least 8 characters"
-                  className="field-input"
                 />
                 <p className="text-xs text-text-muted mt-1">
                   The employee signs in with their work email and this password.
@@ -359,4 +358,4 @@ export default function EmployeeForm() {
       )}
     </div>
   );
-}
+}

@@ -174,7 +174,7 @@ export default function ContractForm() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">
+          <div className="mb-4 p-3 bg-status-danger/10 border border-status-danger/20 text-status-danger text-sm rounded-md">
             {error}
           </div>
         )}
@@ -297,7 +297,7 @@ export default function ContractForm() {
             type="button"
             onClick={handleEndContract}
             disabled={submitting}
-            className="border border-red-500/40 text-red-500 hover:bg-red-500/10 text-sm font-medium rounded-md px-4 py-2 transition-colors"
+            className="border border-status-danger/40 text-status-danger hover:bg-status-danger/10 text-sm font-medium rounded-md px-4 py-2 transition-colors"
           >
             End Contract
           </button>

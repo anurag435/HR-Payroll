@@ -71,7 +71,7 @@ export default function RequestList() {
           {isHrStaff ? "All employee time off requests" : "Your time off requests"}
         </p>
 
-        {error && <p className="text-sm text-red-500 py-2">{error}</p>}
+        {error && <p className="text-sm text-status-danger py-2">{error}</p>}
         {loading && <p className="text-sm text-text-muted py-6 text-center">Loading…</p>}
 
         {!loading && (
@@ -112,7 +112,7 @@ export default function RequestList() {
                             <button
                               onClick={() => handleRefuse(r._id)}
                               disabled={actioningId === r._id}
-                              className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                              className="text-xs text-status-danger hover:underline disabled:opacity-50"
                             >
                               Refuse
                             </button>

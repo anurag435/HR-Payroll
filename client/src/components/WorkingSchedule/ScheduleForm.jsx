@@ -127,7 +127,7 @@ export default function ScheduleForm() {
       </button>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">
+        <div className="mb-4 p-3 bg-status-danger/10 border border-status-danger/20 text-status-danger text-sm rounded-md">
           {error}
         </div>
       )}
@@ -240,7 +240,7 @@ export default function ScheduleForm() {
                     </td>
                     <td className="py-2 pr-4 text-text-secondary">{computeHours(d).toFixed(1)}h</td>
                     <td className="py-2 pr-4">
-                      <button type="button" onClick={() => removeDay(i)} className="text-text-muted hover:text-red-500 transition-colors">×</button>
+                      <button type="button" onClick={() => removeDay(i)} className="text-text-muted hover:text-status-danger transition-colors">×</button>
                     </td>
                   </tr>
                 ))}
@@ -266,7 +266,7 @@ export default function ScheduleForm() {
             type="button"
             onClick={handleArchive}
             disabled={submitting}
-            className="border border-red-500/40 text-red-500 hover:bg-red-500/10 text-sm font-medium rounded-md px-4 py-2 transition-colors"
+            className="border border-status-danger/40 text-status-danger hover:bg-status-danger/10 text-sm font-medium rounded-md px-4 py-2 transition-colors"
           >
             Archive Schedule
           </button>

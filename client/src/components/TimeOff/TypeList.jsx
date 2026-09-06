@@ -29,7 +29,7 @@ export default function TypeList() {
         </div>
         <p className="text-sm text-text-secondary mb-5">Leave policies: units, allocation and approval requirements</p>
 
-        {error && <p className="text-sm text-red-500 py-2">{error}</p>}
+        {error && <p className="text-sm text-status-danger py-2">{error}</p>}
         {loading && <p className="text-sm text-text-muted py-6 text-center">Loading…</p>}
 
         {!loading && (

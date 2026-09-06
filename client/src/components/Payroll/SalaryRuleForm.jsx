@@ -119,7 +119,7 @@ export default function SalaryRuleForm() {
                 type="button"
                 onClick={handleDelete}
                 disabled={submitting}
-                className="text-sm text-red-500 hover:text-red-600 px-3 py-2 disabled:opacity-50"
+                className="text-sm text-status-danger hover:text-status-danger px-3 py-2 disabled:opacity-50"
               >
                 Delete
               </button>
@@ -135,7 +135,7 @@ export default function SalaryRuleForm() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">
+          <div className="mb-4 p-3 bg-status-danger/10 border border-status-danger/20 text-status-danger text-sm rounded-md">
             {error}
           </div>
         )}

@@ -76,7 +76,7 @@ export default function AttendanceList() {
           </select>
         </div>
 
-        {error && <p className="text-sm text-red-500 py-2">{error}</p>}
+        {error && <p className="text-sm text-status-danger py-2">{error}</p>}
         {loading && <p className="text-sm text-text-muted py-6 text-center">Loading attendance…</p>}
 
         {!loading && (
