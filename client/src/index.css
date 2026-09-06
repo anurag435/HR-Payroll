@@ -1,48 +1,129 @@
 @import "tailwindcss";
 
+/* =========================================================================
+   Design tokens — HRPayroll HR & Payroll
+   Palette: deep emerald (growth, trust, money-positive) + warm brass accent,
+   on a cool neutral base. Deliberately avoids the generic "AI palette"
+   defaults (cream+terracotta serif / near-black+neon / broadsheet).
+   ========================================================================= */
+
 @theme {
-  /* Light theme, Odoo-style palette */
-  --color-surface: #f7f7f9;         /* page background */
-  --color-surface-panel: #ffffff;   /* card / panel background */
-  --color-surface-raised: #f3f4f6;  /* inputs, table rows */
-  --color-surface-border: #e5e7eb;  /* hairline borders */
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
 
-  --color-accent: #714b67;          /* Odoo purple/maroon */
-  --color-accent-hover: #5c3d54;
+  /* Light theme (default) */
+  --color-surface: #f4f7f6;          /* page background — cool, not cream */
+  --color-surface-panel: #ffffff;    /* card / panel background */
+  --color-surface-raised: #edf2ef;   /* inputs, table rows, subtle wells */
+  --color-surface-border: #dbe5e0;   /* hairline borders */
 
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
+  --color-accent: #0d7a5f;           /* primary — deep emerald, "growth" */
+  --color-accent-hover: #0a5f4a;
+  --color-brass: #b7862c;            /* secondary accent — used sparingly */
+  --color-brass-hover: #9c7024;
 
-  --color-status-active: #16a34a;
-  --color-status-pending: #ca8a04;
-  --color-status-inactive: #6b7280;
-  --color-status-danger: #dc2626;
+  --color-text-primary: #142520;
+  --color-text-secondary: #566860;
+  --color-text-muted: #8a9a93;
 
-  --radius-card: 10px;
+  --color-status-active: #1f9d6c;
+  --color-status-pending: #b7862c;
+  --color-status-inactive: #6f7d77;
+  --color-status-danger: #c1443b;
+
+  --radius-card: 14px;
+}
+
+/* Dark theme — deep charcoal-green, not pure black; accent brightened for
+   contrast. Overriding the same custom properties means every component
+   that already uses semantic classes (bg-surface, text-text-secondary,
+   bg-accent, etc.) re-themes automatically with zero per-component work. */
+.dark {
+  --color-surface: #0d1512;
+  --color-surface-panel: #131e1a;
+  --color-surface-raised: #1a2521;
+  --color-surface-border: #263531;
+
+  --color-accent: #27c090;
+  --color-accent-hover: #1fa87d;
+  --color-brass: #d3a054;
+  --color-brass-hover: #e0b06a;
+
+  --color-text-primary: #edf5f1;
+  --color-text-secondary: #a6b8b0;
+  --color-text-muted: #71857c;
+
+  --color-status-active: #2bd192;
+  --color-status-pending: #d3a054;
+  --color-status-inactive: #7c8b85;
+  --color-status-danger: #e8695f;
 }
 
 @layer base {
   body {
     @apply bg-surface text-text-primary;
+    font-family: var(--font-sans);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+
+  /* Visible keyboard focus everywhere, without double-ringing elements
+     that already define their own :focus styles (field-input, btn-primary). */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
 @layer components {
   .panel {
-    @apply bg-surface-panel border border-surface-border rounded-card shadow-sm;
+    @apply bg-surface-panel border border-surface-border rounded-card;
+    box-shadow: 0 1px 2px rgba(16, 34, 27, 0.04), 0 8px 24px -12px rgba(16, 34, 27, 0.08);
   }
 
   .field-input {
-    @apply w-full bg-surface-raised border border-surface-border rounded-md px-3 py-2
+    @apply w-full bg-surface-raised border border-surface-border rounded-md px-3 py-2.5
            text-sm text-text-primary placeholder-text-muted
-           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent;
+           transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent;
   }
 
   .btn-primary {
     @apply w-full bg-accent hover:bg-accent-hover text-white font-medium
-           rounded-md py-2.5 text-sm transition-colors duration-150
+           rounded-md py-2.5 text-sm transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed;
+    box-shadow: 0 1px 2px rgba(13, 122, 95, 0.15), 0 4px 12px -4px rgba(13, 122, 95, 0.35);
+  }
+  .btn-primary:not(:disabled):active {
+    transform: translateY(1px);
+  }
+
+  .btn-secondary {
+    @apply border border-surface-border bg-surface-panel hover:bg-surface-raised
+           text-text-primary font-medium rounded-md px-4 py-2.5 text-sm
+           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .icon-btn {
+    @apply relative w-8 h-8 rounded-full border border-surface-border bg-surface-panel
+           flex items-center justify-center text-text-secondary
+           hover:bg-surface-raised hover:text-text-primary transition-colors;
   }
 
   .badge-active {
@@ -63,5 +144,14 @@
   .badge-danger {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border
            text-status-danger border-status-danger/30 bg-status-danger/10;
+  }
+
+  /* Subtle entrance for dropdowns/popovers */
+  .animate-pop {
+    animation: pop-in 0.14s ease-out;
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 }

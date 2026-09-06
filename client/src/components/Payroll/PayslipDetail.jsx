@@ -27,7 +27,7 @@ export default function PayslipDetail() {
   }, [id]);
 
   if (loading) return <p className="text-sm text-text-muted text-center py-16">Loading payslip…</p>;
-  if (error) return <p className="text-sm text-red-500 text-center py-16">{error}</p>;
+  if (error) return <p className="text-sm text-status-danger text-center py-16">{error}</p>;
   if (!payslip) return null;
 
   return (

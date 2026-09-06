@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../context/useAuth";
 import { getMyTodayAttendance, checkIn, checkOut } from "../../services/api";
+import useDismissableDropdown from "../../hooks/useDismissableDropdown";
 
 function formatElapsed(checkInTime) {
   const diffMs = Date.now() - new Date(checkInTime).getTime();
@@ -12,32 +13,36 @@ function formatElapsed(checkInTime) {
 
 export default function AttendanceWidget() {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  // All hooks must run unconditionally, in the same order, on every render —
+  // the "only employees linked to a record can punch in/out" gate used to be
+  // an early `return null` placed *before* these hooks, which breaks React's
+  // rules of hooks the moment `user` changes (e.g. a different account with
+  // a different `employee` link logs in without a full page reload).
+  const [open, setOpen, ref] = useDismissableDropdown();
   const [status, setStatus] = useState(null); // { hasCheckedInToday, hasCheckedOutToday, record }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [, forceTick] = useState(0);
-  const intervalRef = useRef(null);
 
-  // Only employees linked to an Employee record can punch in/out.
-  if (!user?.employee) return null;
+  const hasEmployeeRecord = Boolean(user?.employee);
 
   useEffect(() => {
+    if (!hasEmployeeRecord) return;
     getMyTodayAttendance()
       .then(setStatus)
       .catch(() => setStatus(null));
-  }, []);
+  }, [hasEmployeeRecord]);
 
   const isCheckedIn = status?.hasCheckedInToday && !status?.hasCheckedOutToday;
 
   useEffect(() => {
-    if (isCheckedIn) {
-      intervalRef.current = setInterval(() => forceTick((n) => n + 1), 60000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    return () => clearInterval(intervalRef.current);
+    if (!isCheckedIn) return undefined;
+    const id = setInterval(() => forceTick((n) => n + 1), 60000);
+    return () => clearInterval(id);
   }, [isCheckedIn]);
+
+  // Only employees linked to an Employee record can punch in/out.
+  if (!hasEmployeeRecord) return null;
 
   async function handleCheckIn() {
     setLoading(true);
@@ -66,15 +71,15 @@ export default function AttendanceWidget() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative w-8 h-8 rounded-full border border-surface-border bg-surface-panel flex items-center justify-center hover:bg-surface-raised transition-colors"
+        className="icon-btn"
         title="Attendance"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" className="text-text-secondary" />
-          <path d="M8 4.5V8L10.5 9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" className="text-text-secondary" />
+          <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
+          <path d="M8 4.5V8L10.5 9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
         <span
           className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-surface-panel ${
@@ -84,11 +89,11 @@ export default function AttendanceWidget() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-64 panel p-4 z-20">
+        <div className="absolute right-0 top-full mt-2 w-64 panel p-4 z-20 animate-pop">
           <p className="text-xs text-text-secondary mb-0.5">Welcome back</p>
           <p className="text-base font-semibold mb-3">{user?.name?.split(" ")[0] ?? ""}!</p>
 
-          {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
+          {error && <p className="text-xs text-status-danger mb-2">{error}</p>}
 
           {isCheckedIn ? (
             <>
@@ -97,7 +102,7 @@ export default function AttendanceWidget() {
                   Since{" "}
                   {new Date(status.record.checkIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
-                <span className="font-medium">{formatElapsed(status.record.checkIn)}</span>
+                <span className="font-medium tabular-nums">{formatElapsed(status.record.checkIn)}</span>
               </div>
               <button onClick={handleCheckOut} disabled={loading} className="btn-primary">
                 {loading ? "Checking out…" : "Check Out"}

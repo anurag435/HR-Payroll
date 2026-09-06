@@ -108,7 +108,7 @@ export default function AttendanceForm() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">{error}</div>
+          <div className="mb-4 p-3 bg-status-danger/10 border border-status-danger/20 text-status-danger text-sm rounded-md">{error}</div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

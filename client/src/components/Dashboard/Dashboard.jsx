@@ -7,9 +7,9 @@ function formatMoney(n) {
 
 function KpiCard({ label, value, sub }) {
   return (
-    <div className="panel p-4">
+    <div className="panel p-4 border-t-2 border-t-accent">
       <p className="text-xs text-text-secondary mb-1">{label}</p>
-      <p className="text-2xl font-semibold">{value}</p>
+      <p className="text-2xl font-display font-bold tabular-nums">{value}</p>
       {sub && <p className="text-xs text-text-muted mt-0.5">{sub}</p>}
     </div>
   );
@@ -167,7 +167,7 @@ export default function Dashboard() {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">{error}</div>
+        <div className="mb-4 p-3 bg-status-danger/10 border border-status-danger/20 text-status-danger text-sm rounded-md">{error}</div>
       )}
 
       {loading && <p className="text-sm text-text-muted py-16 text-center">Loading dashboard…</p>}

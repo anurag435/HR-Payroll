@@ -1,35 +1,9 @@
-import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { roleLabel, ROLE_GROUPS } from "../../constants/roles";
 import AttendanceWidget from "./AttendanceWidget";
-
-function useDismissableDropdown() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!open) return undefined;
-
-    function handlePointerDown(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false);
-      }
-    }
-    function handleKeyDown(e) {
-      if (e.key === "Escape") setOpen(false);
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
-
-  return [open, setOpen, ref];
-}
+import ThemeToggle from "./ThemeToggle";
+import useDismissableDropdown from "../../hooks/useDismissableDropdown";
 
 function NavDropdown({ label, items, active }) {
   const [open, setOpen, ref] = useDismissableDropdown();
@@ -93,8 +67,19 @@ export default function TopNav() {
     <header className="sticky top-0 z-10 bg-surface-panel border-b border-surface-border">
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to={canManageHR ? "/employees" : "/attendance"} className="w-7 h-7 rounded-md bg-accent text-white flex items-center justify-center text-xs font-bold shrink-0">
-            HR
+          <Link
+            to={canManageHR ? "/employees" : "/attendance"}
+            className="flex items-center gap-2 shrink-0"
+          >
+            <span className="w-7 h-7 rounded-md bg-accent text-white flex items-center justify-center shrink-0">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M4 15.5 10.5 9l3 3L21 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M15 5h6v6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="hidden sm:block font-display font-bold text-[15px] tracking-tight text-text-primary">
+              HRPayroll
+            </span>
           </Link>
 
           <nav className="flex items-center gap-1">
@@ -139,7 +124,8 @@ export default function TopNav() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           <AttendanceWidget />
           <div className="relative" ref={profileRef}>
           <button
@@ -173,7 +159,7 @@ export default function TopNav() {
                   setProfileOpen(false);
                   handleLogout();
                 }}
-                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-surface-raised"
+                className="w-full text-left px-4 py-2 text-sm text-status-danger hover:bg-surface-raised"
               >
                 Log out
               </button>

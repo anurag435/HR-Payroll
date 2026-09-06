@@ -8,6 +8,7 @@ import {
   updateUserStatus,
 } from "../../services/api";
 import { ROLE_OPTIONS, roleLabel } from "../../constants/roles";
+import PasswordInput from "../common/PasswordInput";
 import { useAuth } from "../../context/useAuth";
 import StatusBadge from "../common/StatusBadge";
 
@@ -224,7 +225,7 @@ export default function UserManagement() {
           </h2>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-md">
+            <div className="mb-4 p-3 bg-status-danger/10 border border-status-danger/20 text-status-danger text-sm rounded-md">
               {error}
             </div>
           )}
@@ -232,7 +233,7 @@ export default function UserManagement() {
           {editingUserId ? (
             <div className="space-y-4">
               {isEditingSelf && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 text-xs rounded-md">
+                <div className="p-3 bg-status-pending/10 border border-status-pending/20 text-status-pending text-xs rounded-md">
                   You can't change your own role or deactivate your own account — ask another Admin.
                 </div>
               )}
@@ -303,13 +304,11 @@ export default function UserManagement() {
 
               <div>
                 <label className="block text-xs text-text-secondary mb-1.5">Password *</label>
-                <input
-                  type="password"
+                <PasswordInput
                   minLength={8}
                   value={form.password}
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   placeholder="At least 8 characters"
-                  className="field-input"
                 />
               </div>
 
@@ -386,4 +385,4 @@ export default function UserManagement() {
       </div>
     </div>
   );
-}
+}
